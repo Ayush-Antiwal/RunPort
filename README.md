@@ -116,8 +116,13 @@ Contributions are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for setup inst
 
 Please read our [Code of Conduct](CODE_OF_CONDUCT.md) before participating.
 
+## Author
+
+Created and maintained by [**Ayush Antiwal**](https://ayushantiwal.in) ([@Ayush-Antiwal](https://github.com/Ayush-Antiwal)).
+
 ---
 
 ## License
 
 RunPort is open-source software licensed under the [MIT License](LICENSE). Free for personal, commercial, academic, and open-source use.
+

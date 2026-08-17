@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "RunPort — Local Development Server & Process Manager",
   "main": "dist-electron/main.js",
-  "author": "RunPort",
+  "author": "Ayush Antiwal <https://ayushantiwal.in>",
   "license": "MIT",
   "scripts": {
     "dev": "npm run electron:dev",

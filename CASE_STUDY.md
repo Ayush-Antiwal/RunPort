@@ -1,10 +1,12 @@
 # RunPort — Case Study
 
 **Product**: RunPort — Local Development Server Manager  
+**Author**: [Ayush Antiwal](https://ayushantiwal.in)  
 **Type**: Open-source desktop application  
 **Platform**: Windows  
 **Stack**: Electron · React 19 · TypeScript · Vite · TailwindCSS 4  
-**Repo**: [github.com/Ayush-Antiwal/RunPort](https://github.com/Ayush-Antiwal/RunPort)
+**Repo**: [github.com/Ayush-Antiwal/RunPort](https://github.com/Ayush-Antiwal/RunPort)  
+**Website**: [ayush-antiwal.github.io/RunPort](https://ayush-antiwal.github.io/RunPort)
 
 ---
 
