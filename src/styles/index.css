@@ -1,0 +1,139 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import "tailwindcss";
+
+/* =====================================================
+   RunPort UI & Design System Tokens — Dark OLED Theme
+   ===================================================== */
+:root {
+  --background: 240 10% 4%;
+  --foreground: 0 0% 98%;
+
+  --card: 240 6% 8%;
+  --card-foreground: 0 0% 98%;
+
+  --popover: 240 6% 8%;
+  --popover-foreground: 0 0% 98%;
+
+  --primary: 217 91% 60%;
+  --primary-foreground: 0 0% 100%;
+
+  --secondary: 240 4% 13%;
+  --secondary-foreground: 0 0% 70%;
+
+  --muted: 240 4% 13%;
+  --muted-foreground: 240 5% 45%;
+
+  --accent: 240 4% 16%;
+  --accent-foreground: 0 0% 98%;
+
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 100%;
+
+  --border: 240 5% 16%;
+  --input: 240 5% 12%;
+  --ring: 217 91% 60%;
+
+  --radius: 0.375rem;
+
+  /* App Specific Palette */
+  --bg-dark: #09090b;
+  --bg-sidebar: #101014;
+  --bg-panel: #141418;
+  --bg-panel-hover: #1b1b22;
+  --bg-card: #16161a;
+  --bg-input: #17171c;
+  --border-color: #24242c;
+  --border-active: #343440;
+
+  --text-main: #ffffff;
+  --text-muted: #94a3b8;
+  --text-dim: #64748b;
+
+  --accent-primary: #3b82f6;
+  --accent-primary-hover: #2563eb;
+
+  --status-running: #10b981;
+  --status-running-bg: rgba(16, 185, 129, 0.12);
+  --status-starting: #f59e0b;
+  --status-starting-bg: rgba(245, 158, 11, 0.12);
+  --status-stopped: #71717a;
+  --status-stopped-bg: rgba(113, 113, 122, 0.12);
+  --status-failed: #ef4444;
+  --status-failed-bg: rgba(239, 68, 68, 0.12);
+
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+/* Base Reset */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background-color: var(--bg-dark);
+  color: var(--text-main);
+  font-family: var(--font-sans);
+  user-select: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
+::-webkit-scrollbar-thumb { background: #272730; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #3b3b48; }
+
+/* Electron Drag Regions */
+.drag-header { -webkit-app-region: drag; }
+.no-drag { -webkit-app-region: no-drag; }
+
+/* Status Pulse Animations */
+@keyframes pulseGlow {
+  0%, 100% { opacity: 0.8; transform: scale(1); box-shadow: 0 0 6px var(--status-running); }
+  50% { opacity: 1; transform: scale(1.2); box-shadow: 0 0 10px var(--status-running); }
+}
+
+@keyframes pulseStarting {
+  0%, 100% { opacity: 0.7; transform: scale(1); box-shadow: 0 0 6px var(--status-starting); }
+  50% { opacity: 1; transform: scale(1.25); box-shadow: 0 0 10px var(--status-starting); }
+}
+
+.dot-running {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--status-running);
+  animation: pulseGlow 2s infinite ease-in-out;
+}
+
+.dot-starting {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--status-starting);
+  animation: pulseStarting 1s infinite ease-in-out;
+}
+
+.dot-idle {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--status-stopped);
+}
+
+/* Glass Card Utility */
+.glass-panel {
+  background: rgba(22, 22, 26, 0.85);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
