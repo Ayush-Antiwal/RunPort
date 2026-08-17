@@ -97,10 +97,10 @@
           <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
           GitHub
         </a>
-        <a href="https://github.com/Ayush-Antiwal/RunPort/releases/latest" target="_blank" rel="noopener noreferrer"
-           class="px-4 py-2 bg-brand-600 hover:bg-brand-500 text-white text-sm font-semibold rounded-lg transition-all duration-200 shadow-md hover:shadow-brand-500/25 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-400"
+        <a href="https://github.com/Ayush-Antiwal/RunPort/releases/latest/download/RunPort.Setup.1.0.0.exe"
+           class="px-4 py-2 bg-brand-600 hover:bg-brand-500 text-white text-sm font-semibold rounded-lg transition-all duration-200 shadow-md hover:shadow-brand-500/25 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-400 direct-installer-link"
            id="nav-download-btn">
-          Download
+          Download .exe
         </a>
         <!-- Mobile hamburger -->
         <button id="mobile-menu-btn" class="md:hidden p-2 rounded-lg hover:bg-white/10 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-400"
@@ -153,13 +153,12 @@
           Add a project once — control it forever.
         </p>
 
-        <div class="flex flex-wrap items-center justify-center gap-4 mb-16 slide-in-up stagger-3">
-          <a href="https://github.com/Ayush-Antiwal/RunPort/releases/latest"
-             target="_blank" rel="noopener noreferrer"
-             class="group inline-flex items-center gap-2.5 px-6 py-3.5 bg-brand-600 hover:bg-brand-500 text-white font-semibold rounded-xl transition-all duration-200 hover:shadow-xl hover:shadow-brand-600/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-400"
+        <div class="flex flex-wrap items-center justify-center gap-4 mb-4 slide-in-up stagger-3">
+          <a href="https://github.com/Ayush-Antiwal/RunPort/releases/latest/download/RunPort.Setup.1.0.0.exe"
+             class="group inline-flex items-center gap-2.5 px-6 py-3.5 bg-brand-600 hover:bg-brand-500 text-white font-semibold rounded-xl transition-all duration-200 hover:shadow-xl hover:shadow-brand-600/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-400 direct-installer-link"
              id="hero-download-btn">
             <svg width="18" height="18" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M10 2a1 1 0 011 1v9.586l2.293-2.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 12.586V3a1 1 0 011-1z"/><path d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"/></svg>
-            Download for Windows
+            <span id="hero-download-text">Download for Windows (.exe)</span>
           </a>
           <a href="#demo"
              class="inline-flex items-center gap-2 px-5 py-3.5 border border-cyan-500/30 hover:border-cyan-500/60 bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 font-semibold rounded-xl transition-all duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan-400"
@@ -174,6 +173,16 @@
             <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
             Star on GitHub
           </a>
+        </div>
+
+        <!-- Secondary Download Options -->
+        <div class="flex items-center justify-center gap-3 text-xs text-white/40 mb-16 slide-in-up stagger-3">
+          <span>Direct:</span>
+          <a href="https://github.com/Ayush-Antiwal/RunPort/releases/latest/download/RunPort.Setup.1.0.0.exe" class="hover:text-white transition-colors underline decoration-white/20 direct-installer-link">Installer (.exe)</a>
+          <span>·</span>
+          <a href="https://github.com/Ayush-Antiwal/RunPort/releases/latest/download/RunPort.1.0.0.exe" class="hover:text-white transition-colors underline decoration-white/20 direct-portable-link">Portable Standalone (.exe)</a>
+          <span>·</span>
+          <a href="https://github.com/Ayush-Antiwal/RunPort/releases/latest" target="_blank" rel="noopener noreferrer" class="hover:text-white transition-colors">Release Notes &rarr;</a>
         </div>
 
         <!-- Dashboard screenshot with 3D Perspective Tilt -->
@@ -614,13 +623,12 @@
             <p class="text-brand-400 text-sm font-semibold uppercase tracking-widest mb-4">Free &amp; Open Source</p>
             <h2 id="download-heading" class="text-3xl md:text-4xl font-bold mb-4">Ready to reclaim your desktop?</h2>
             <p class="text-white/50 text-lg mb-8">No account. No subscription. No telemetry. Just download and run.</p>
-            <div class="flex flex-wrap justify-center gap-4">
-              <a href="https://github.com/Ayush-Antiwal/RunPort/releases/latest"
-                 target="_blank" rel="noopener noreferrer"
-                 class="inline-flex items-center gap-2.5 px-7 py-4 bg-brand-600 hover:bg-brand-500 text-white font-bold rounded-xl transition-all duration-200 hover:shadow-2xl hover:shadow-brand-600/40 text-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-400 animate-glow-pulse"
+            <div class="flex flex-wrap justify-center gap-4 mb-4">
+              <a href="https://github.com/Ayush-Antiwal/RunPort/releases/latest/download/RunPort.Setup.1.0.0.exe"
+                 class="inline-flex items-center gap-2.5 px-7 py-4 bg-brand-600 hover:bg-brand-500 text-white font-bold rounded-xl transition-all duration-200 hover:shadow-2xl hover:shadow-brand-600/40 text-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-400 animate-glow-pulse direct-installer-link"
                  id="footer-download-btn">
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M10 2a1 1 0 011 1v9.586l2.293-2.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 12.586V3a1 1 0 011-1z"/><path d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"/></svg>
-                Download for Windows
+                <span id="footer-download-text">Download for Windows (.exe)</span>
               </a>
               <a href="https://github.com/Ayush-Antiwal/RunPort"
                  target="_blank" rel="noopener noreferrer"
@@ -630,7 +638,13 @@
                 View on GitHub
               </a>
             </div>
-            <p class="text-white/30 text-sm mt-6">Windows · Free · MIT License</p>
+            <div class="flex items-center justify-center gap-3 text-xs text-white/40 mt-4">
+              <span>Direct options:</span>
+              <a href="https://github.com/Ayush-Antiwal/RunPort/releases/latest/download/RunPort.Setup.1.0.0.exe" class="hover:text-white transition-colors underline decoration-white/20 direct-installer-link">Installer (.exe)</a>
+              <span>·</span>
+              <a href="https://github.com/Ayush-Antiwal/RunPort/releases/latest/download/RunPort.1.0.0.exe" class="hover:text-white transition-colors underline decoration-white/20 direct-portable-link">Portable Standalone (.exe)</a>
+            </div>
+            <p class="text-white/30 text-xs mt-4">Windows 10 / 11 · Free &amp; Open Source · MIT License</p>
           </div>
         </div>
       </div>

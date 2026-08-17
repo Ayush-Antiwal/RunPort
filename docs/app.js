@@ -345,3 +345,70 @@ if (document.getElementById('sim-project-list')) {
     if (updated) renderSimulator();
   }, 1000);
 }
+
+// ─── Dynamic GitHub Releases Direct Download Resolver ───────
+async function initDirectDownloads() {
+  const repoOwner = 'Ayush-Antiwal';
+  const repoName = 'RunPort';
+  const apiUrl = `https://api.github.com/repos/${repoOwner}/${repoName}/releases/latest`;
+
+  try {
+    const res = await fetch(apiUrl);
+    if (!res.ok) return;
+    const release = await res.json();
+    const tagName = release.tag_name || 'v1.0.0';
+    const assets = release.assets || [];
+
+    let installerUrl = null;
+    let portableUrl = null;
+    let installerSize = null;
+
+    assets.forEach(asset => {
+      const name = asset.name || '';
+      if (name.endsWith('.exe')) {
+        if (name.toLowerCase().includes('setup')) {
+          installerUrl = asset.browser_download_url;
+          if (asset.size) {
+            installerSize = `${Math.round(asset.size / (1024 * 1024))}MB`;
+          }
+        } else {
+          portableUrl = asset.browser_download_url;
+        }
+      }
+    });
+
+    if (!installerUrl && assets.length > 0) {
+      const firstExe = assets.find(a => (a.name || '').endsWith('.exe'));
+      if (firstExe) installerUrl = firstExe.browser_download_url;
+    }
+
+    if (installerUrl) {
+      document.querySelectorAll('.direct-installer-link').forEach(link => {
+        link.href = installerUrl;
+      });
+      const heroText = document.getElementById('hero-download-text');
+      if (heroText) {
+        heroText.textContent = `Download ${tagName} for Windows (.exe)${installerSize ? ` · ${installerSize}` : ''}`;
+      }
+      const footerText = document.getElementById('footer-download-text');
+      if (footerText) {
+        footerText.textContent = `Download ${tagName} for Windows (.exe)`;
+      }
+      const navBtn = document.getElementById('nav-download-btn');
+      if (navBtn) {
+        navBtn.textContent = `Download ${tagName}`;
+      }
+    }
+
+    if (portableUrl) {
+      document.querySelectorAll('.direct-portable-link').forEach(link => {
+        link.href = portableUrl;
+      });
+    }
+  } catch (e) {
+    console.debug('GitHub release lookup deferred to static fallback URLs', e);
+  }
+}
+
+initDirectDownloads();
+
