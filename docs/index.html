@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="RunPort — Stop juggling terminals. Control all your local development servers from one beautiful desktop dashboard. Free & open source for Windows." />
+  <meta property="og:title" content="RunPort — Local Dev Server Manager" />
+  <meta property="og:description" content="Stop juggling terminals. Control all your local development servers from one beautiful desktop dashboard." />
+  <meta property="og:type" content="website" />
+  <meta name="theme-color" content="#0a0a0f" />
+  <title>RunPort — Local Dev Server Manager</title>
+
+  <!-- Fira Sans & Fira Code Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Fira+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Fira Sans', 'sans-serif'],
+            mono: ['Fira Code', 'monospace'],
+          },
+          colors: {
+            brand: {
+              50:  '#eef2ff',
+              100: '#e0e7ff',
+              300: '#a5b4fc',
+              400: '#818cf8',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+            },
+            green: {
+              400: '#4ade80',
+              500: '#22c55e',
+            },
+            cyan: {
+              400: '#22d3ee',
+            },
+            surface: {
+              900: '#0a0a0f',
+              800: '#111118',
+              700: '#1a1a24',
+              600: '#22222f',
+            }
+          },
+          animation: {
+            'glow-pulse': 'glowPulse 3s ease-in-out infinite',
+            'float': 'float 6s ease-in-out infinite',
+          }
+        }
+      }
+    }
+  </script>
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body class="bg-surface-900 text-white font-sans antialiased overflow-x-hidden">
+
+  <!-- ─── SKIP TO CONTENT ──────────────────────────────────────── -->
+  <a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-brand-600 focus:text-white focus:rounded-lg">Skip to content</a>
+
+  <!-- ─── NAV ─────────────────────────────────────────────────── -->
+  <header id="nav" class="fixed top-0 left-0 right-0 z-50 transition-all duration-300" role="banner">
+    <nav class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between" aria-label="Main navigation">
+      <a href="#" class="flex items-center gap-2.5 group focus-visible:outline-brand-400" aria-label="RunPort home">
+        <div class="w-8 h-8 rounded-lg bg-brand-600 flex items-center justify-center group-hover:bg-brand-500 transition-colors shadow-lg shadow-brand-600/30">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <rect x="1" y="1" width="6" height="6" rx="1.5" fill="white"/>
+            <rect x="9" y="1" width="6" height="6" rx="1.5" fill="white" opacity="0.6"/>
+            <rect x="1" y="9" width="6" height="6" rx="1.5" fill="white" opacity="0.6"/>
+            <rect x="9" y="9" width="6" height="6" rx="1.5" fill="white" opacity="0.3"/>
+          </svg>
+        </div>
+        <span class="font-bold text-lg tracking-tight">RunPort</span>
+      </a>
+
+      <!-- Desktop links -->
+      <ul class="hidden md:flex items-center gap-8 text-sm text-white/60 font-medium" role="list">
+        <li><a href="#features" class="hover:text-white transition-colors focus-visible:outline-none focus-visible:text-white">Features</a></li>
+        <li><a href="#how-it-works" class="hover:text-white transition-colors focus-visible:outline-none focus-visible:text-white">How it works</a></li>
+        <li><a href="#demo" class="hover:text-white transition-colors focus-visible:outline-none focus-visible:text-white flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></span>Live Demo</a></li>
+        <li><a href="#use-cases" class="hover:text-white transition-colors focus-visible:outline-none focus-visible:text-white">Use Cases</a></li>
+        <li><a href="#case-study" class="hover:text-white transition-colors focus-visible:outline-none focus-visible:text-white">Case Study</a></li>
+      </ul>
+
+      <div class="flex items-center gap-3">
+        <a href="https://github.com/Ayush-Antiwal/RunPort" target="_blank" rel="noopener noreferrer"
+           class="hidden md:flex items-center gap-1.5 text-sm text-white/70 hover:text-white transition-colors focus-visible:outline-brand-500 rounded px-2.5 py-1.5 hover:bg-white/5"
+           aria-label="View RunPort on GitHub">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
+          GitHub
+        </a>
+        <a href="https://github.com/Ayush-Antiwal/RunPort/releases/latest" target="_blank" rel="noopener noreferrer"
+           class="px-4 py-2 bg-brand-600 hover:bg-brand-500 text-white text-sm font-semibold rounded-lg transition-all duration-200 shadow-md hover:shadow-brand-500/25 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-400"
+           id="nav-download-btn">
+          Download
+        </a>
+        <!-- Mobile hamburger -->
+        <button id="mobile-menu-btn" class="md:hidden p-2 rounded-lg hover:bg-white/10 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-400"
+                aria-label="Open mobile menu" aria-expanded="false" aria-controls="mobile-menu">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </button>
+      </div>
+    </nav>
+
+    <!-- Mobile menu -->
+    <div id="mobile-menu" class="md:hidden hidden border-t border-white/10 bg-surface-800/95 backdrop-blur-md" role="dialog" aria-label="Mobile menu">
+      <ul class="flex flex-col px-6 py-4 gap-4 text-sm" role="list">
+        <li><a href="#features" class="text-white/70 hover:text-white transition-colors block py-1">Features</a></li>
+        <li><a href="#how-it-works" class="text-white/70 hover:text-white transition-colors block py-1">How it works</a></li>
+        <li><a href="#demo" class="text-white/70 hover:text-white transition-colors block py-1">Live Demo</a></li>
+        <li><a href="#use-cases" class="text-white/70 hover:text-white transition-colors block py-1">Use Cases</a></li>
+        <li><a href="#case-study" class="text-white/70 hover:text-white transition-colors block py-1">Case Study</a></li>
+        <li><a href="https://github.com/Ayush-Antiwal/RunPort" target="_blank" rel="noopener noreferrer" class="text-white/70 hover:text-white transition-colors block py-1">GitHub</a></li>
+      </ul>
+    </div>
+  </header>
+
+  <main id="main">
+
+    <!-- ─── HERO ─────────────────────────────────────────────── -->
+    <section id="hero" class="relative min-h-screen flex flex-col items-center justify-center pt-24 pb-16 px-6 overflow-hidden" aria-labelledby="hero-heading">
+      <!-- Background glow -->
+      <div class="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
+        <div class="hero-glow-1 absolute top-1/4 left-1/2 -translate-x-1/2 w-[700px] h-[700px] rounded-full opacity-20"></div>
+        <div class="hero-glow-2 absolute top-1/3 left-1/4 w-[400px] h-[400px] rounded-full opacity-15"></div>
+        <div class="grid-overlay absolute inset-0"></div>
+      </div>
+
+      <div class="relative z-10 max-w-4xl mx-auto text-center">
+        <!-- Badge -->
+        <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-white/10 bg-white/5 text-xs text-white/80 mb-8 slide-in-up">
+          <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse shadow-[0_0_8px_rgba(74,222,128,0.8)]" aria-hidden="true"></span>
+          Open Source · Free Forever · Built for Windows
+        </div>
+
+        <h1 id="hero-heading" class="text-5xl md:text-7xl font-extrabold tracking-tight leading-none mb-6 slide-in-up stagger-1">
+          Stop juggling<br />
+          <span class="gradient-text">terminals.</span>
+        </h1>
+
+        <p class="text-lg md:text-xl text-white/60 max-w-2xl mx-auto leading-relaxed mb-10 slide-in-up stagger-2">
+          RunPort gives you a single dashboard to start, stop, and monitor all your local dev servers.
+          Add a project once — control it forever.
+        </p>
+
+        <div class="flex flex-wrap items-center justify-center gap-4 mb-16 slide-in-up stagger-3">
+          <a href="https://github.com/Ayush-Antiwal/RunPort/releases/latest"
+             target="_blank" rel="noopener noreferrer"
+             class="group inline-flex items-center gap-2.5 px-6 py-3.5 bg-brand-600 hover:bg-brand-500 text-white font-semibold rounded-xl transition-all duration-200 hover:shadow-xl hover:shadow-brand-600/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-400"
+             id="hero-download-btn">
+            <svg width="18" height="18" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M10 2a1 1 0 011 1v9.586l2.293-2.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 12.586V3a1 1 0 011-1z"/><path d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"/></svg>
+            Download for Windows
+          </a>
+          <a href="#demo"
+             class="inline-flex items-center gap-2 px-5 py-3.5 border border-cyan-500/30 hover:border-cyan-500/60 bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 font-semibold rounded-xl transition-all duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan-400"
+             id="hero-demo-btn">
+            <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+            Try Interactive Demo
+          </a>
+          <a href="https://github.com/Ayush-Antiwal/RunPort"
+             target="_blank" rel="noopener noreferrer"
+             class="inline-flex items-center gap-2.5 px-6 py-3.5 border border-white/15 hover:border-white/30 bg-white/5 hover:bg-white/10 text-white font-semibold rounded-xl transition-all duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-400"
+             id="hero-github-btn">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
+            Star on GitHub
+          </a>
+        </div>
+
+        <!-- Dashboard screenshot with 3D Perspective Tilt -->
+        <div class="relative mx-auto max-w-4xl hero-perspective-container scale-in stagger-4">
+          <div class="absolute inset-0 rounded-2xl bg-gradient-to-b from-brand-600/25 to-transparent blur-2xl scale-95" aria-hidden="true"></div>
+          <div class="hero-tilt-card relative rounded-2xl border border-white/10 overflow-hidden shadow-2xl bg-surface-900">
+            <img src="assets/dashboard.jpg"
+                 alt="RunPort dashboard showing 3 projects: portfolio-v4, layout-v2, and dashboard-template. The dashboard-template project is selected and shows a running Vite server on port 5174 with live terminal output."
+                 class="w-full block"
+                 width="1024" height="640"
+                 loading="eager" />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── PROBLEM ───────────────────────────────────────────── -->
+    <section id="problem" class="py-24 px-6" aria-labelledby="problem-heading">
+      <div class="max-w-5xl mx-auto">
+        <div class="text-center mb-16 slide-in-up">
+          <h2 id="problem-heading" class="text-3xl md:text-4xl font-bold mb-4">Sound familiar?</h2>
+          <p class="text-white/50 text-lg">Every developer's daily reality before RunPort.</p>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-6 items-stretch">
+          <!-- Before (Slides in from left) -->
+          <div class="glass-card rounded-2xl p-8 border border-red-500/20 slide-in-left">
+            <div class="flex items-center gap-3 mb-6">
+              <div class="w-8 h-8 rounded-full bg-red-500/20 flex items-center justify-center" aria-hidden="true">
+                <span class="text-red-400 text-lg font-bold">✗</span>
+              </div>
+              <h3 class="text-lg font-semibold text-red-400">Without RunPort</h3>
+            </div>
+            <ul class="space-y-3.5 text-white/60 text-sm" role="list">
+              <li class="flex gap-2.5"><span class="text-red-400 shrink-0 font-bold" aria-hidden="true">•</span>Open a new terminal window for every project</li>
+              <li class="flex gap-2.5"><span class="text-red-400 shrink-0 font-bold" aria-hidden="true">•</span><code class="font-mono text-xs bg-white/5 px-1.5 py-0.5 rounded text-white/80">cd ~/projects/client-a/frontend</code> every single time</li>
+              <li class="flex gap-2.5"><span class="text-red-400 shrink-0 font-bold" aria-hidden="true">•</span>Remember which exact command to run per project</li>
+              <li class="flex gap-2.5"><span class="text-red-400 shrink-0 font-bold" aria-hidden="true">•</span>Guess which random port each server is on</li>
+              <li class="flex gap-2.5"><span class="text-red-400 shrink-0 font-bold" aria-hidden="true">•</span>"Port 3000 already in use" errors with no clear PID</li>
+              <li class="flex gap-2.5"><span class="text-red-400 shrink-0 font-bold" aria-hidden="true">•</span>8 terminal windows cluttering your desktop by midday</li>
+              <li class="flex gap-2.5"><span class="text-red-400 shrink-0 font-bold" aria-hidden="true">•</span>Repeat the entire tedious setup every morning</li>
+            </ul>
+          </div>
+
+          <!-- After (Slides in from right) -->
+          <div class="glass-card rounded-2xl p-8 border border-green-500/30 slide-in-right shadow-[0_0_30px_-10px_rgba(34,197,94,0.15)]">
+            <div class="flex items-center gap-3 mb-6">
+              <div class="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center shadow-[0_0_10px_rgba(34,197,94,0.3)]" aria-hidden="true">
+                <span class="text-green-400 text-lg font-bold">✓</span>
+              </div>
+              <h3 class="text-lg font-semibold text-green-400">With RunPort</h3>
+            </div>
+            <ul class="space-y-3.5 text-white/70 text-sm" role="list">
+              <li class="flex gap-2.5"><span class="text-green-400 shrink-0 font-bold" aria-hidden="true">•</span>All projects visible in one unified sidebar</li>
+              <li class="flex gap-2.5"><span class="text-green-400 shrink-0 font-bold" aria-hidden="true">•</span>One click to start, stop, or restart any server</li>
+              <li class="flex gap-2.5"><span class="text-green-400 shrink-0 font-bold" aria-hidden="true">•</span>Framework, command, and port auto-detected</li>
+              <li class="flex gap-2.5"><span class="text-green-400 shrink-0 font-bold" aria-hidden="true">•</span>Port and active Git branch visible next to project</li>
+              <li class="flex gap-2.5"><span class="text-green-400 shrink-0 font-bold" aria-hidden="true">•</span>Port conflicts resolved with 1-click PID kill</li>
+              <li class="flex gap-2.5"><span class="text-green-400 shrink-0 font-bold" aria-hidden="true">•</span>Zero background terminal windows needed</li>
+              <li class="flex gap-2.5"><span class="text-green-400 shrink-0 font-bold" aria-hidden="true">•</span>Projects &amp; configurations remembered forever</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── FEATURES ──────────────────────────────────────────── -->
+    <section id="features" class="py-24 px-6" aria-labelledby="features-heading">
+      <div class="max-w-6xl mx-auto">
+        <div class="text-center mb-16 slide-in-up">
+          <p class="text-brand-400 text-sm font-semibold uppercase tracking-widest mb-3">Features</p>
+          <h2 id="features-heading" class="text-3xl md:text-4xl font-bold mb-4">Everything you need, nothing you don't</h2>
+          <p class="text-white/50 text-lg max-w-xl mx-auto">Built for developers who want power without complexity.</p>
+        </div>
+
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+
+          <article class="feature-card glass-card rounded-2xl p-7 slide-in-up stagger-1" aria-labelledby="feat-1-title">
+            <div class="feat-icon w-12 h-12 rounded-xl bg-brand-600/20 flex items-center justify-center mb-5" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="text-brand-400"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+            </div>
+            <h3 id="feat-1-title" class="text-base font-semibold mb-2">Auto-Detection</h3>
+            <p class="text-white/50 text-sm leading-relaxed">Point RunPort at a project folder. It reads your <code class="font-mono text-xs bg-white/5 px-1 rounded">package.json</code>, detects your framework (Next.js, Vite, Angular, NestJS…), and pre-fills the start command. Zero manual config.</p>
+          </article>
+
+          <article class="feature-card glass-card rounded-2xl p-7 slide-in-up stagger-2" aria-labelledby="feat-2-title">
+            <div class="feat-icon w-12 h-12 rounded-xl bg-green-500/10 flex items-center justify-center mb-5" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="text-green-400"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+            </div>
+            <h3 id="feat-2-title" class="text-base font-semibold mb-2">Floating Desktop Widget</h3>
+            <p class="text-white/50 text-sm leading-relaxed">A compact, always-on-top widget floats above your code editor. Start or stop any server with one click — without switching away from what you're working on.</p>
+          </article>
+
+          <article class="feature-card glass-card rounded-2xl p-7 slide-in-up stagger-3" aria-labelledby="feat-3-title">
+            <div class="feat-icon w-12 h-12 rounded-xl bg-orange-500/10 flex items-center justify-center mb-5" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="text-orange-400"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+            </div>
+            <h3 id="feat-3-title" class="text-base font-semibold mb-2">Smart Port Conflict Resolver</h3>
+            <p class="text-white/50 text-sm leading-relaxed">When a port is occupied, RunPort tells you exactly which process is using it. Kill it with one click, or let RunPort automatically pick the next free port.</p>
+          </article>
+
+          <article class="feature-card glass-card rounded-2xl p-7 slide-in-up stagger-4" aria-labelledby="feat-4-title">
+            <div class="feat-icon w-12 h-12 rounded-xl bg-cyan-500/10 flex items-center justify-center mb-5" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="text-cyan-400"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+            </div>
+            <h3 id="feat-4-title" class="text-base font-semibold mb-2">Live Log Streaming</h3>
+            <p class="text-white/50 text-sm leading-relaxed">Watch server output in real time — startup messages, build errors, request logs. Batched at 50&nbsp;ms intervals for smooth display even under high-velocity output.</p>
+          </article>
+
+          <article class="feature-card glass-card rounded-2xl p-7 slide-in-up stagger-5" aria-labelledby="feat-5-title">
+            <div class="feat-icon w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center mb-5" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="text-purple-400"><line x1="6" y1="3" x2="6" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 01-9 9"/></svg>
+            </div>
+            <h3 id="feat-5-title" class="text-base font-semibold mb-2">Git Branch &amp; Uptime Tracking</h3>
+            <p class="text-white/50 text-sm leading-relaxed">See your active Git branch and how long each server has been running at a glance. No more switching to a terminal just to check <code class="font-mono text-xs bg-white/5 px-1 rounded">git branch</code>.</p>
+          </article>
+
+          <article class="feature-card glass-card rounded-2xl p-7 slide-in-up stagger-6" aria-labelledby="feat-6-title">
+            <div class="feat-icon w-12 h-12 rounded-xl bg-yellow-500/10 flex items-center justify-center mb-5" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="text-yellow-400"><path d="M18 8h1a4 4 0 010 8h-1"/><path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
+            </div>
+            <h3 id="feat-6-title" class="text-base font-semibold mb-2">System Tray Integration</h3>
+            <p class="text-white/50 text-sm leading-relaxed">Minimize RunPort to the system tray and keep your taskbar clean. Right-click the tray icon for Start&nbsp;All / Stop&nbsp;All — no window needed.</p>
+          </article>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── HOW IT WORKS ──────────────────────────────────────── -->
+    <section id="how-it-works" class="py-24 px-6" aria-labelledby="hiw-heading">
+      <div class="max-w-5xl mx-auto">
+        <div class="text-center mb-16 slide-in-up">
+          <p class="text-brand-400 text-sm font-semibold uppercase tracking-widest mb-3">How it works</p>
+          <h2 id="hiw-heading" class="text-3xl md:text-4xl font-bold mb-4">Up and running in 3 steps</h2>
+        </div>
+
+        <div class="relative grid md:grid-cols-3 gap-8">
+          <!-- Flow Line connecting steps (Desktop) -->
+          <div class="hidden md:block absolute top-7 left-1/6 right-1/6 h-[2px] bg-gradient-to-r from-brand-500/20 via-brand-500/50 to-brand-500/20 pointer-events-none" aria-hidden="true"></div>
+
+          <div class="text-center relative z-10 slide-in-up stagger-1">
+            <div class="step-number w-14 h-14 rounded-2xl bg-brand-600/20 border border-brand-600/40 flex items-center justify-center mx-auto mb-5 text-brand-400 font-bold text-xl backdrop-blur-md" aria-hidden="true">1</div>
+            <h3 class="text-lg font-semibold mb-3">Add Your Project</h3>
+            <p class="text-white/50 text-sm leading-relaxed">Click "Add Project", select your project folder. RunPort reads your files and identifies the framework instantly.</p>
+          </div>
+          <div class="text-center relative z-10 slide-in-up stagger-2">
+            <div class="step-number w-14 h-14 rounded-2xl bg-brand-600/20 border border-brand-600/40 flex items-center justify-center mx-auto mb-5 text-brand-400 font-bold text-xl backdrop-blur-md" aria-hidden="true">2</div>
+            <h3 class="text-lg font-semibold mb-3">Auto-Configure</h3>
+            <p class="text-white/50 text-sm leading-relaxed">The start command and port are pre-filled. Adjust anything you want, then save. Your project is remembered forever.</p>
+          </div>
+          <div class="text-center relative z-10 slide-in-up stagger-3">
+            <div class="step-number w-14 h-14 rounded-2xl bg-brand-600/20 border border-brand-600/40 flex items-center justify-center mx-auto mb-5 text-brand-400 font-bold text-xl backdrop-blur-md" aria-hidden="true">3</div>
+            <h3 class="text-lg font-semibold mb-3">Control Everything</h3>
+            <p class="text-white/50 text-sm leading-relaxed">Start, stop, restart, and open servers in the browser with one click. Manage all your projects from a single window.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── INTERACTIVE LIVE DEMO SIMULATOR ───────────────────── -->
+    <section id="demo" class="py-20 px-6" aria-labelledby="demo-heading">
+      <div class="max-w-4xl mx-auto">
+        <div class="text-center mb-12 slide-in-up">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-cyan-500/30 bg-cyan-500/10 text-xs text-cyan-300 mb-3">
+            <span class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></span>
+            Try it right here
+          </div>
+          <h2 id="demo-heading" class="text-3xl md:text-4xl font-bold mb-3">Interactive Browser Preview</h2>
+          <p class="text-white/50 text-base max-w-xl mx-auto">Click Start / Stop to test how RunPort controls dev server processes in real-time.</p>
+        </div>
+
+        <div class="glass-card rounded-2xl border border-white/15 overflow-hidden shadow-2xl scale-in">
+          <!-- Window Chrome Header -->
+          <div class="bg-surface-800/90 border-b border-white/10 px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full bg-red-500/60 inline-block"></span>
+              <span class="w-3 h-3 rounded-full bg-yellow-500/60 inline-block"></span>
+              <span class="w-3 h-3 rounded-full bg-green-500/60 inline-block"></span>
+              <span class="ml-2 text-xs font-semibold text-white/50 tracking-wider">RUNPORT SIMULATOR</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <button type="button" onclick="simStartAll()" class="px-2.5 py-1 text-xs bg-white/5 hover:bg-white/10 text-white/70 hover:text-white rounded border border-white/10 transition-colors">Start All</button>
+              <button type="button" onclick="simStopAll()" class="px-2.5 py-1 text-xs bg-white/5 hover:bg-white/10 text-white/70 hover:text-white rounded border border-white/10 transition-colors">Stop All</button>
+            </div>
+          </div>
+
+          <!-- Simulator Body -->
+          <div class="grid md:grid-cols-12 min-h-[380px]">
+            <!-- Sidebar list -->
+            <div class="md:col-span-5 border-r border-white/10 p-3 bg-surface-900/60 flex flex-col justify-between">
+              <div class="space-y-1" id="sim-project-list">
+                <!-- Injected by app.js -->
+              </div>
+              <div class="pt-3 border-t border-white/10 text-center">
+                <span class="text-xs text-white/30 font-medium">3 registered projects</span>
+              </div>
+            </div>
+
+            <!-- Detail Panel -->
+            <div class="md:col-span-7 p-5 flex flex-col justify-between bg-surface-800/40">
+              <div>
+                <!-- Top metadata row -->
+                <div class="flex items-center justify-between gap-2 mb-4">
+                  <div class="flex items-center gap-2 min-w-0">
+                    <h3 id="sim-detail-title" class="font-bold text-base text-white truncate">ecommerce-storefront</h3>
+                    <span id="sim-detail-tag" class="px-1.5 py-0.5 rounded text-[10px] font-mono bg-brand-500/20 text-brand-300 border border-brand-500/30">NEXT.JS</span>
+                  </div>
+                  <button id="sim-detail-action-btn" type="button" onclick="toggleSimProject()" class="shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold">
+                    Stop
+                  </button>
+                </div>
+
+                <!-- Info Grid -->
+                <div class="grid grid-cols-3 gap-3 p-3 rounded-xl bg-white/5 border border-white/5 mb-4 text-xs">
+                  <div>
+                    <span class="text-white/40 block text-[10px] uppercase font-mono">Status</span>
+                    <div id="sim-detail-status" class="mt-0.5 font-medium">Running</div>
+                  </div>
+                  <div>
+                    <span class="text-white/40 block text-[10px] uppercase font-mono">Port</span>
+                    <div id="sim-detail-url" class="mt-0.5">3000</div>
+                  </div>
+                  <div>
+                    <span class="text-white/40 block text-[10px] uppercase font-mono">Git Branch</span>
+                    <div id="sim-detail-branch" class="mt-0.5 font-mono text-white/80">main</div>
+                  </div>
+                </div>
+
+                <!-- Simulated Live Terminal Output -->
+                <div class="rounded-xl border border-white/10 bg-black/70 p-3 font-mono text-xs overflow-hidden">
+                  <div class="flex items-center justify-between pb-2 mb-2 border-b border-white/10 text-[10px] text-white/40">
+                    <span>TERMINAL OUTPUT</span>
+                    <span class="text-green-400">STREAMING</span>
+                  </div>
+                  <div id="sim-detail-logs" class="space-y-1 max-h-[140px] overflow-y-auto leading-relaxed">
+                    <!-- Logs injected by app.js -->
+                  </div>
+                </div>
+              </div>
+
+              <p class="text-[11px] text-white/30 text-center mt-3">Try clicking different projects or hitting Start/Stop above.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── PREVIEW: Widget + Logs ───────────────────────────── -->
+    <section class="py-16 px-6" aria-label="App preview screenshots">
+      <div class="max-w-5xl mx-auto grid md:grid-cols-2 gap-6">
+        <div class="slide-in-left">
+          <p class="text-white/40 text-xs uppercase tracking-widest mb-3 font-semibold">Floating Desktop Widget</p>
+          <div class="rounded-xl border border-white/10 overflow-hidden shadow-xl hover:border-white/20 transition-all duration-300">
+            <img src="assets/widget.jpg"
+                 alt="RunPort floating mini widget showing 3 projects with running status and port numbers. Floats above a VS Code window."
+                 class="w-full block"
+                 width="600" height="400"
+                 loading="lazy" />
+          </div>
+        </div>
+        <div class="slide-in-right">
+          <p class="text-white/40 text-xs uppercase tracking-widest mb-3 font-semibold">Live Log Output</p>
+          <div class="rounded-xl border border-white/10 overflow-hidden shadow-xl hover:border-white/20 transition-all duration-300">
+            <img src="assets/logs.jpg"
+                 alt="RunPort terminal log panel showing color-coded Vite server startup output with timestamps and clickable localhost URL."
+                 class="w-full block"
+                 width="600" height="400"
+                 loading="lazy" />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── STATS ─────────────────────────────────────────────── -->
+    <section class="py-20 px-6" aria-label="RunPort by the numbers">
+      <div class="max-w-4xl mx-auto">
+        <div class="glass-card rounded-2xl border border-white/10 p-10 scale-in">
+          <dl class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+            <div class="slide-in-up stagger-1">
+              <dt class="text-white/40 text-xs uppercase tracking-widest mb-2 font-mono">Frameworks</dt>
+              <dd class="text-4xl font-extrabold gradient-text tabular-nums" data-count="11">0</dd>
+            </div>
+            <div class="slide-in-up stagger-2">
+              <dt class="text-white/40 text-xs uppercase tracking-widest mb-2 font-mono">Package Managers</dt>
+              <dd class="text-4xl font-extrabold gradient-text tabular-nums" data-count="4">0</dd>
+            </div>
+            <div class="slide-in-up stagger-3">
+              <dt class="text-white/40 text-xs uppercase tracking-widest mb-2 font-mono">IPC Batch Interval</dt>
+              <dd class="text-4xl font-extrabold gradient-text tabular-nums"><span data-count="50">0</span><span class="text-xl font-semibold text-white/30">ms</span></dd>
+            </div>
+            <div class="slide-in-up stagger-4">
+              <dt class="text-white/40 text-xs uppercase tracking-widest mb-2 font-mono">License</dt>
+              <dd class="text-3xl font-extrabold gradient-text-emerald mt-1">MIT</dd>
+            </div>
+          </dl>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── USE CASES ─────────────────────────────────────────── -->
+    <section id="use-cases" class="py-24 px-6" aria-labelledby="usecases-heading">
+      <div class="max-w-5xl mx-auto">
+        <div class="text-center mb-16 slide-in-up">
+          <p class="text-brand-400 text-sm font-semibold uppercase tracking-widest mb-3">Use Cases</p>
+          <h2 id="usecases-heading" class="text-3xl md:text-4xl font-bold mb-4">Built for how developers actually work</h2>
+        </div>
+
+        <div class="grid md:grid-cols-3 gap-6">
+
+          <article class="glass-card rounded-2xl p-7 slide-in-up stagger-1" aria-labelledby="uc-1-title">
+            <div class="w-10 h-10 rounded-xl bg-brand-600/20 flex items-center justify-center mb-5" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="text-brand-400"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </div>
+            <h3 id="uc-1-title" class="text-base font-semibold mb-3">The Freelancer</h3>
+            <p class="text-white/50 text-sm leading-relaxed">Managing 5 client projects at once. With RunPort, you switch contexts instantly — no terminal archaeology to find which server is which.</p>
+          </article>
+
+          <article class="glass-card rounded-2xl p-7 slide-in-up stagger-2" aria-labelledby="uc-2-title">
+            <div class="w-10 h-10 rounded-xl bg-green-500/10 flex items-center justify-center mb-5" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="text-green-400"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+            </div>
+            <h3 id="uc-2-title" class="text-base font-semibold mb-3">The Full-Stack Developer</h3>
+            <p class="text-white/50 text-sm leading-relaxed">Running a React frontend, a Node API, and a background worker simultaneously. RunPort keeps all three visible and controllable from one window.</p>
+          </article>
+
+          <article class="glass-card rounded-2xl p-7 slide-in-up stagger-3" aria-labelledby="uc-3-title">
+            <div class="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center mb-5" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="text-purple-400"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+            </div>
+            <h3 id="uc-3-title" class="text-base font-semibold mb-3">The Team Lead</h3>
+            <p class="text-white/50 text-sm leading-relaxed">Onboarding a new developer? Send them a list of RunPort projects. They're up and running with no "which command do I use?" questions.</p>
+          </article>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── CASE STUDY ────────────────────────────────────────── -->
+    <section id="case-study" class="py-24 px-6" aria-labelledby="cs-heading">
+      <div class="max-w-3xl mx-auto">
+        <div class="text-center mb-14 slide-in-up">
+          <p class="text-brand-400 text-sm font-semibold uppercase tracking-widest mb-3">Case Study</p>
+          <h2 id="cs-heading" class="text-3xl md:text-4xl font-bold mb-4">How RunPort was built</h2>
+          <p class="text-white/50 text-lg">From a recurring daily frustration to a working desktop product.</p>
+        </div>
+
+        <div class="space-y-10">
+
+          <div class="cs-block slide-in-left">
+            <h3 class="cs-title" id="cs-problem">The Problem</h3>
+            <p class="cs-body">As a developer working across multiple client projects, the morning routine became a ritual of friction: open terminal, <code class="cs-code">cd</code> into project A, remember the right command, repeat for project B, then C. By midday, there were eight terminal tabs open. Switching between them meant reading tab labels and hoping you picked the right one. When a port conflict appeared, you had to dig through process lists manually.</p>
+            <p class="cs-body mt-4">The question was simple: why should managing a running process be harder than managing an open application?</p>
+          </div>
+
+          <div class="cs-block slide-in-right">
+            <h3 class="cs-title" id="cs-vision">The Vision</h3>
+            <p class="cs-body">A dashboard where every project is a row. Green dot = running. One click to start, stop, or restart. The port and local URL visible at all times. Log output one tab away. No terminal required for day-to-day use.</p>
+            <p class="cs-body mt-4">The MVP spec was kept deliberately small: add a project, save it, detect its dev server, start it, stop it, view its logs. If those 11 things worked reliably, the tool already delivered real value.</p>
+          </div>
+
+          <div class="cs-block slide-in-left">
+            <h3 class="cs-title" id="cs-built">What Was Built</h3>
+            <p class="cs-body">RunPort shipped with:</p>
+            <ul class="cs-list">
+              <li>Auto-detection of 11 frameworks and 4 package managers</li>
+              <li>A full project lifecycle — start, stop, restart, open in browser</li>
+              <li>Live log streaming with filter and clear controls</li>
+              <li>Git branch display and real-time uptime counters</li>
+              <li>A floating always-on-top widget for 1-click control without leaving your editor</li>
+              <li>A smart port conflict resolver with 1-click PID kill or auto next-free-port</li>
+              <li>System tray with Start&nbsp;All / Stop&nbsp;All</li>
+            </ul>
+          </div>
+
+          <div class="cs-block slide-in-right">
+            <h3 class="cs-title" id="cs-challenges">Challenges Solved</h3>
+            <dl class="space-y-4">
+              <div>
+                <dt class="text-white font-semibold text-sm mb-1">Process Tree Killing on Windows</dt>
+                <dd class="text-white/50 text-sm leading-relaxed">When you stop a Node.js dev server on Windows, the parent process exits but child processes (the actual server) linger. RunPort uses tree-kill to terminate the entire process group, not just the parent — ensuring no orphan processes consume your ports.</dd>
+              </div>
+              <div>
+                <dt class="text-white font-semibold text-sm mb-1">High-Velocity Log Output</dt>
+                <dd class="text-white/50 text-sm leading-relaxed">During a Vite cold build, hundreds of log lines arrive in milliseconds. Naïve per-line IPC messaging caused the UI to freeze. RunPort batches log messages at a 50&nbsp;ms interval and maintains a bounded memory buffer — the UI stays responsive regardless of output rate.</dd>
+              </div>
+              <div>
+                <dt class="text-white font-semibold text-sm mb-1">Frameless Transparent Widget Window</dt>
+                <dd class="text-white/50 text-sm leading-relaxed">A floating widget that looks native on Windows requires a frameless, transparent Electron window with always-on-top behavior and correct hit-testing so drag works but clicks pass through transparent regions.</dd>
+              </div>
+            </dl>
+          </div>
+
+          <div class="cs-block scale-in">
+            <h3 class="cs-title" id="cs-results">Results</h3>
+            <div class="grid grid-cols-2 gap-4">
+              <div class="bg-white/5 rounded-xl p-5 border border-white/10">
+                <p class="text-3xl font-bold gradient-text tabular-nums mb-1">11</p>
+                <p class="text-white/50 text-sm">Frameworks auto-detected</p>
+              </div>
+              <div class="bg-white/5 rounded-xl p-5 border border-white/10">
+                <p class="text-3xl font-bold gradient-text tabular-nums mb-1">0</p>
+                <p class="text-white/50 text-sm">Terminals needed</p>
+              </div>
+              <div class="bg-white/5 rounded-xl p-5 border border-white/10">
+                <p class="text-3xl font-bold gradient-text tabular-nums mb-1">50ms</p>
+                <p class="text-white/50 text-sm">IPC log batch interval</p>
+              </div>
+              <div class="bg-white/5 rounded-xl p-5 border border-white/10">
+                <p class="text-3xl font-bold gradient-text tabular-nums mb-1">100%</p>
+                <p class="text-white/50 text-sm">MVP spec delivered</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="cs-block slide-in-up">
+            <h3 class="cs-title" id="cs-roadmap">What's Next</h3>
+            <ul class="cs-list">
+              <li><strong class="text-white">Development Profiles</strong> — Group projects into named profiles and start a full environment (frontend + backend + workers) with one action</li>
+              <li><strong class="text-white">Docker Integration</strong> — Manage Docker containers alongside Node/Python/Go servers from the same dashboard</li>
+              <li><strong class="text-white">WSL Support</strong> — Run servers inside WSL environments and surface them in RunPort's UI</li>
+              <li><strong class="text-white">macOS</strong> — Cross-platform build extending the current Windows-only release</li>
+            </ul>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── DOWNLOAD CTA ───────────────────────────────────────── -->
+    <section id="download" class="py-24 px-6" aria-labelledby="download-heading">
+      <div class="max-w-2xl mx-auto text-center slide-in-up">
+        <div class="glass-card rounded-3xl border border-white/15 p-12 relative overflow-hidden shadow-2xl">
+          <div class="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
+            <div class="hero-glow-1 absolute top-0 left-1/2 -translate-x-1/2 w-[450px] h-[350px] rounded-full opacity-20"></div>
+          </div>
+          <div class="relative z-10">
+            <p class="text-brand-400 text-sm font-semibold uppercase tracking-widest mb-4">Free &amp; Open Source</p>
+            <h2 id="download-heading" class="text-3xl md:text-4xl font-bold mb-4">Ready to reclaim your desktop?</h2>
+            <p class="text-white/50 text-lg mb-8">No account. No subscription. No telemetry. Just download and run.</p>
+            <div class="flex flex-wrap justify-center gap-4">
+              <a href="https://github.com/Ayush-Antiwal/RunPort/releases/latest"
+                 target="_blank" rel="noopener noreferrer"
+                 class="inline-flex items-center gap-2.5 px-7 py-4 bg-brand-600 hover:bg-brand-500 text-white font-bold rounded-xl transition-all duration-200 hover:shadow-2xl hover:shadow-brand-600/40 text-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-400 animate-glow-pulse"
+                 id="footer-download-btn">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M10 2a1 1 0 011 1v9.586l2.293-2.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 12.586V3a1 1 0 011-1z"/><path d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"/></svg>
+                Download for Windows
+              </a>
+              <a href="https://github.com/Ayush-Antiwal/RunPort"
+                 target="_blank" rel="noopener noreferrer"
+                 class="inline-flex items-center gap-2.5 px-7 py-4 border border-white/15 hover:border-white/30 bg-white/5 hover:bg-white/10 text-white font-semibold rounded-xl transition-all duration-200 text-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-400"
+                 id="footer-github-btn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
+                View on GitHub
+              </a>
+            </div>
+            <p class="text-white/30 text-sm mt-6">Windows · Free · MIT License</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── TECH + INSTALL ─────────────────────────────────────── -->
+    <section id="tech" class="py-16 px-6 border-t border-white/5" aria-labelledby="tech-heading">
+      <div class="max-w-4xl mx-auto">
+        <div class="text-center mb-10 slide-in-up">
+          <h2 id="tech-heading" class="text-xl font-semibold text-white/60">Built with</h2>
+        </div>
+        <div class="flex flex-wrap justify-center gap-3 mb-14 slide-in-up stagger-1" aria-label="Technology stack">
+          <span class="tech-badge">Electron 34</span>
+          <span class="tech-badge">React 19</span>
+          <span class="tech-badge">TypeScript</span>
+          <span class="tech-badge">Vite</span>
+          <span class="tech-badge">TailwindCSS 4</span>
+          <span class="tech-badge">Radix UI</span>
+        </div>
+
+        <div class="glass-card rounded-2xl border border-white/10 p-8 scale-in stagger-2">
+          <h3 class="text-base font-semibold mb-4 text-white/80">Build from source</h3>
+          <pre class="font-mono text-sm text-green-400 leading-7 overflow-x-auto"><code><span class="text-white/30"># Clone</span>
+git clone https://github.com/Ayush-Antiwal/RunPort.git &amp;&amp; cd RunPort
+
+<span class="text-white/30"># Install</span>
+npm install
+
+<span class="text-white/30"># Dev mode (hot reload)</span>
+npm run dev
+
+<span class="text-white/30"># Build Windows installer</span>
+npm run dist</code></pre>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ─── FOOTER ────────────────────────────────────────────────── -->
+  <footer class="border-t border-white/5 py-10 px-6" role="contentinfo">
+    <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-white/30">
+      <div class="flex items-center gap-2">
+        <div class="w-6 h-6 rounded-md bg-brand-600/60 flex items-center justify-center" aria-hidden="true">
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><rect x="1" y="1" width="6" height="6" rx="1.5" fill="white"/><rect x="9" y="1" width="6" height="6" rx="1.5" fill="white" opacity="0.6"/><rect x="1" y="9" width="6" height="6" rx="1.5" fill="white" opacity="0.6"/><rect x="9" y="9" width="6" height="6" rx="1.5" fill="white" opacity="0.3"/></svg>
+        </div>
+        <span><span translate="no">RunPort</span> — MIT License</span>
+      </div>
+      <nav aria-label="Footer navigation">
+        <ul class="flex items-center gap-6" role="list">
+          <li><a href="https://github.com/Ayush-Antiwal/RunPort" target="_blank" rel="noopener noreferrer" class="hover:text-white transition-colors focus-visible:outline focus-visible:outline-1 focus-visible:outline-brand-400 rounded">GitHub</a></li>
+          <li><a href="https://github.com/Ayush-Antiwal/RunPort/releases" target="_blank" rel="noopener noreferrer" class="hover:text-white transition-colors focus-visible:outline focus-visible:outline-1 focus-visible:outline-brand-400 rounded">Releases</a></li>
+          <li><a href="https://github.com/Ayush-Antiwal/RunPort/issues" target="_blank" rel="noopener noreferrer" class="hover:text-white transition-colors focus-visible:outline focus-visible:outline-1 focus-visible:outline-brand-400 rounded">Issues</a></li>
+          <li><a href="https://github.com/Ayush-Antiwal/RunPort/blob/main/LICENSE" target="_blank" rel="noopener noreferrer" class="hover:text-white transition-colors focus-visible:outline focus-visible:outline-1 focus-visible:outline-brand-400 rounded">License</a></li>
+        </ul>
+      </nav>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

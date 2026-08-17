@@ -1,0 +1,362 @@
+/* ── RunPort Website — Custom CSS layer on top of Tailwind ── */
+
+:root {
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ─── Base ─────────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  color-scheme: dark;
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: #0a0a0f;
+  font-feature-settings: 'kern' 1, 'liga' 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ─── Focus visible ─────────────────────────────────────────── */
+:focus-visible {
+  outline: 2px solid #6366f1;
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+/* ─── Scrollbar ─────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.22); }
+
+/* ─── Gradient text ─────────────────────────────────────────── */
+.gradient-text {
+  background: linear-gradient(135deg, #a5b4fc 0%, #6366f1 45%, #22d3ee 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.gradient-text-emerald {
+  background: linear-gradient(135deg, #4ade80 0%, #22c55e 50%, #14b8a6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ─── Glass card & Border Sheen ──────────────────────────────── */
+.glass-card {
+  position: relative;
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: background 0.3s var(--ease-smooth),
+              border-color 0.3s var(--ease-smooth),
+              transform 0.3s var(--ease-out-expo),
+              box-shadow 0.3s var(--ease-smooth);
+  touch-action: manipulation;
+}
+
+.glass-card:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+/* ─── Feature card hover ────────────────────────────────────── */
+.feature-card {
+  transition: transform 0.35s var(--ease-out-expo),
+              box-shadow 0.35s var(--ease-smooth),
+              border-color 0.3s var(--ease-smooth),
+              background 0.3s var(--ease-smooth);
+}
+
+.feature-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px -10px rgba(99, 102, 241, 0.15), 0 0 0 1px rgba(99, 102, 241, 0.25);
+  border-color: rgba(99, 102, 241, 0.3);
+}
+
+.feature-card:hover .feat-icon {
+  transform: scale(1.1) rotate(2deg);
+  transition: transform 0.3s var(--ease-spring);
+}
+
+/* ─── Background glows ──────────────────────────────────────── */
+.hero-glow-1 {
+  background: radial-gradient(ellipse at center, #4f46e5 0%, transparent 70%);
+  filter: blur(60px);
+  animation: pulseSlow 8s ease-in-out infinite alternate;
+}
+
+.hero-glow-2 {
+  background: radial-gradient(ellipse at center, #22d3ee 0%, transparent 70%);
+  filter: blur(80px);
+  animation: pulseSlow 10s ease-in-out infinite alternate-reverse;
+}
+
+@keyframes pulseSlow {
+  0% { transform: translate(-50%, -10%) scale(0.9); opacity: 0.15; }
+  100% { transform: translate(-50%, 10%) scale(1.15); opacity: 0.25; }
+}
+
+/* ─── Grid overlay ──────────────────────────────────────────── */
+.grid-overlay {
+  background-image:
+    linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+  background-size: 60px 60px;
+  mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 0%, transparent 100%);
+}
+
+/* ─── Nav scroll state ──────────────────────────────────────── */
+#nav.scrolled {
+  background: rgba(10, 10, 15, 0.88);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+}
+
+/* ─── Step number & Connectors ──────────────────────────────── */
+.step-number {
+  font-variant-numeric: tabular-nums;
+  transition: transform 0.3s var(--ease-spring), background 0.3s ease, box-shadow 0.3s ease;
+}
+
+.step-number:hover {
+  transform: scale(1.12);
+  background: rgba(99, 102, 241, 0.4);
+  box-shadow: 0 0 25px rgba(99, 102, 241, 0.4);
+}
+
+/* ─── 3D Perspective Tilt on Hero Mockup ────────────────────── */
+.hero-perspective-container {
+  perspective: 1200px;
+}
+
+.hero-tilt-card {
+  transform-style: preserve-3d;
+  transition: transform 0.4s var(--ease-out-expo);
+  will-change: transform;
+}
+
+/* ─── Direction-Aware Slide-In & Scroll Reveal ─────────────── */
+.reveal,
+.slide-in-left,
+.slide-in-right,
+.slide-in-up,
+.scale-in {
+  opacity: 0;
+  will-change: transform, opacity;
+  transition: opacity 0.75s var(--ease-out-expo), transform 0.75s var(--ease-out-expo);
+}
+
+.slide-in-left {
+  transform: translateX(-48px);
+}
+
+.slide-in-right {
+  transform: translateX(48px);
+}
+
+.slide-in-up,
+.reveal {
+  transform: translateY(36px);
+}
+
+.scale-in {
+  transform: scale(0.92) translateY(24px);
+}
+
+/* Active visible state */
+.slide-in-left.visible,
+.slide-in-right.visible,
+.slide-in-up.visible,
+.scale-in.visible,
+.reveal.visible {
+  opacity: 1;
+  transform: translate(0, 0) scale(1);
+}
+
+/* Stagger delay utility classes */
+.stagger-1 { transition-delay: 60ms; }
+.stagger-2 { transition-delay: 120ms; }
+.stagger-3 { transition-delay: 180ms; }
+.stagger-4 { transition-delay: 240ms; }
+.stagger-5 { transition-delay: 300ms; }
+.stagger-6 { transition-delay: 360ms; }
+
+/* ─── Interactive Simulator Widget ──────────────────────────── */
+.simulator-tab-active {
+  background: rgba(99, 102, 241, 0.2);
+  color: #fff;
+  border-color: rgba(99, 102, 241, 0.4);
+}
+
+.terminal-cursor {
+  display: inline-block;
+  width: 7px;
+  height: 14px;
+  background: #22d3ee;
+  vertical-align: middle;
+  animation: terminalBlink 1s infinite;
+}
+
+@keyframes terminalBlink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+
+/* ─── Case study typography ─────────────────────────────────── */
+.cs-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: white;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.cs-body {
+  font-size: 0.9375rem;
+  line-height: 1.8;
+  color: rgba(255,255,255,0.6);
+}
+
+.cs-code {
+  font-family: 'Fira Code', monospace;
+  font-size: 0.8em;
+  background: rgba(255,255,255,0.08);
+  padding: 0.15em 0.45em;
+  border-radius: 4px;
+  color: #818cf8;
+}
+
+.cs-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.cs-list li {
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  color: rgba(255,255,255,0.6);
+  padding-left: 1.35rem;
+  position: relative;
+}
+
+.cs-list li::before {
+  content: '→';
+  position: absolute;
+  left: 0;
+  color: #6366f1;
+  font-size: 0.875rem;
+  font-weight: bold;
+}
+
+.cs-block {
+  padding: 2rem;
+  border-radius: 1rem;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.07);
+  transition: border-color 0.3s ease, background 0.3s ease;
+}
+
+.cs-block:hover {
+  border-color: rgba(99, 102, 241, 0.25);
+  background: rgba(255,255,255,0.035);
+}
+
+/* ─── Tech badge ────────────────────────────────────────────── */
+.tech-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.4rem 0.95rem;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 9999px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: rgba(255,255,255,0.7);
+  transition: background 0.25s var(--ease-smooth),
+              border-color 0.25s var(--ease-smooth),
+              color 0.25s var(--ease-smooth),
+              transform 0.25s var(--ease-spring);
+  touch-action: manipulation;
+}
+
+.tech-badge:hover {
+  background: rgba(99, 102, 241, 0.15);
+  border-color: rgba(99, 102, 241, 0.4);
+  color: rgba(255,255,255,1);
+  transform: translateY(-2px);
+}
+
+/* ─── Code block ────────────────────────────────────────────── */
+pre code {
+  display: block;
+}
+
+/* ─── Keyframe Animations ────────────────────────────────────── */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-12px); }
+}
+
+@keyframes glowPulse {
+  0%, 100% { box-shadow: 0 0 20px rgba(99,102,241,0.3), 0 0 40px rgba(99,102,241,0.1); }
+  50% { box-shadow: 0 0 35px rgba(99,102,241,0.6), 0 0 70px rgba(99,102,241,0.25); }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+.animate-glow-pulse {
+  animation: glowPulse 3s ease-in-out infinite;
+}
+
+/* ─── Reduced motion ────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .reveal,
+  .slide-in-left,
+  .slide-in-right,
+  .slide-in-up,
+  .scale-in {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+  .animate-float { animation: none !important; }
+  .animate-glow-pulse { animation: none !important; }
+  .hero-glow-1, .hero-glow-2 { animation: none !important; }
+  .hero-tilt-card { transform: none !important; }
+}
+
+/* ─── Mobile nav overscroll ─────────────────────────────────── */
+#mobile-menu {
+  overscroll-behavior: contain;
+}
+
+/* ─── Mobile adjustments ────────────────────────────────────── */
+@media (max-width: 768px) {
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+  .slide-in-left,
+  .slide-in-right {
+    transform: translateY(28px);
+  }
+}
