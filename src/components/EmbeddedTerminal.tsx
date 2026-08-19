@@ -122,7 +122,7 @@ export const EmbeddedTerminal: React.FC<EmbeddedTerminalProps> = ({ project, sta
 
           <button
             onClick={() => window.electronAPI.openInTerminal(project.path)}
-            title="Open in External Terminal"
+            title="External Terminal"
             className="h-6 w-6 rounded flex items-center justify-center bg-[#1c1c24] hover:bg-cyan-500/20 text-cyan-400 hover:text-cyan-300 transition-all cursor-pointer border border-[#323242] hover:border-cyan-500/30"
           >
             <TerminalIcon size={11} />

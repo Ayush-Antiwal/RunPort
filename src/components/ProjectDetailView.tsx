@@ -266,41 +266,45 @@ export const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
 
           {/* Host/URL Column */}
           <PropCell label="Host" mono>
-            <div className="flex items-center gap-2">
-              <a
-                href={projectUrl}
-                onClick={(e) => {
-                  e.preventDefault();
-                  window.electronAPI.openInBrowser(projectUrl);
-                }}
-                className="text-blue-400 hover:text-blue-300 underline hover:no-underline flex items-center gap-1.5 cursor-pointer font-semibold"
-              >
-                {projectUrl}
-                <ExternalLink size={10} className="shrink-0" />
-              </a>
-              <button
-                onClick={() => {
-                  navigator.clipboard.writeText(projectUrl);
-                }}
-                title="Copy URL"
-                className="p-1 hover:bg-[#272732] rounded text-zinc-400 hover:text-white transition-colors bg-transparent border-none cursor-pointer flex items-center"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="12"
-                  height="12"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
+            {isRunning ? (
+              <div className="flex items-center gap-2">
+                <a
+                  href={projectUrl}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    window.electronAPI.openInBrowser(projectUrl);
+                  }}
+                  className="text-blue-400 hover:text-blue-300 underline hover:no-underline flex items-center gap-1.5 cursor-pointer font-semibold"
                 >
-                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                </svg>
-              </button>
-            </div>
+                  {projectUrl}
+                  <ExternalLink size={10} className="shrink-0" />
+                </a>
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(projectUrl);
+                  }}
+                  title="Copy URL"
+                  className="p-1 hover:bg-[#272732] rounded text-zinc-400 hover:text-white transition-colors bg-transparent border-none cursor-pointer flex items-center"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                  </svg>
+                </button>
+              </div>
+            ) : (
+              <span className="text-zinc-500 font-mono text-[0.8rem]">{project.port}</span>
+            )}
           </PropCell>
 
           {/* Git Branch Column */}
