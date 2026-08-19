@@ -76,7 +76,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
       ) : (
         <div className="h-9 px-2 flex items-center justify-between border-b border-[#22222a] bg-[#0c0c0f] shrink-0">
           <div className="flex items-center gap-2 pl-0.5">
-            <img src="/RunPort.svg" alt="RunPort Logo" className="w-4 h-4 object-contain shrink-0" />
             <span className="text-xs font-bold uppercase tracking-widest text-[#fafafa] select-none">RunPort</span>
           </div>
           <div className="flex items-center gap-0.5">
