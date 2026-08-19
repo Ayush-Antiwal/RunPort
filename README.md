@@ -1,6 +1,8 @@
-# RunPort
-
 <div align="center">
+
+<img src="RunPort.png" alt="RunPort Logo" width="128" />
+
+# RunPort
 
 **Stop juggling terminals. Control all your dev servers from one place.**
 

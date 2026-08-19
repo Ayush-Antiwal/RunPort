@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="RunPort.png" alt="RunPort Logo" width="128" />
+</p>
+
 # RunPort — Case Study
 
 **Product**: RunPort — Local Development Server Manager  
