@@ -1,11 +1,25 @@
-import { app, BrowserWindow, ipcMain, dialog, shell, nativeImage } from 'electron';
+import { app, BrowserWindow, ipcMain, dialog, shell, nativeImage, session } from 'electron';
 import path from 'path';
-import { exec } from 'child_process';
+import fs from 'fs';
+import { spawn } from 'child_process';
 import { Store } from './store';
 import { ProcessManager } from './processManager';
 import { autoDetectProject, killProcessOnPort, getProcessUsingPort, isPortAvailable, findNextUnusedPort, getGitBranch, getGitBranches, switchGitBranch } from './detector';
 import { createSystemTray } from './tray';
 import { Project } from './types';
+
+// Helper to strictly restrict shell.openPath to existing local directories (HIGH-001)
+function isSafeDirectory(targetPath: string): boolean {
+  if (!targetPath || typeof targetPath !== 'string') return false;
+  // Block UNC network paths (e.g. \\server\share)
+  if (targetPath.startsWith('\\\\') || targetPath.startsWith('//')) return false;
+  try {
+    const stat = fs.statSync(targetPath);
+    return stat.isDirectory();
+  } catch {
+    return false;
+  }
+}
 
 // Optimize Electron V8 Memory Footprint (Cap V8 heap & collapse renderer processes)
 app.commandLine.appendSwitch('js-flags', '--max-old-space-size=128 --expose-gc');
@@ -26,6 +40,28 @@ function getViteUrl(hash: string = '') {
   return `file://${path.join(__dirname, '../dist/index.html')}${hash}`;
 }
 
+function attachSecurityGuards(window: BrowserWindow) {
+  // Disallow creating new windows from renderer
+  window.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
+
+  // Disallow navigating away from trusted local app content
+  window.webContents.on('will-navigate', (event, navigationUrl) => {
+    try {
+      const parsed = new URL(navigationUrl);
+      const isAllowedOrigin =
+        (isDev && parsed.origin === 'http://localhost:5179') ||
+        (!isDev && parsed.protocol === 'file:');
+
+      if (!isAllowedOrigin) {
+        event.preventDefault();
+        console.warn(`Blocked untrusted navigation to: ${navigationUrl}`);
+      }
+    } catch (e) {
+      event.preventDefault();
+    }
+  });
+}
+
 function createMainWindow() {
   mainWindow = new BrowserWindow({
     width: 1100,
@@ -39,9 +75,12 @@ function createMainWindow() {
       preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: false,
       contextIsolation: true,
+      sandbox: true,
       backgroundThrottling: true,
     },
   });
+
+  attachSecurityGuards(mainWindow);
 
   mainWindow.loadURL(getViteUrl('#/dashboard'));
 
@@ -101,8 +140,11 @@ function createWidgetWindow() {
       preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: false,
       contextIsolation: true,
+      sandbox: true,
     },
   });
+
+  attachSecurityGuards(widgetWindow);
 
   widgetWindow.loadURL(getViteUrl('#/widget'));
 
@@ -134,6 +176,20 @@ app.whenReady().then(() => {
   store = new Store();
   processManager = new ProcessManager(() => [mainWindow, widgetWindow]);
 
+  // Set session-level CSP headers for production & dev security (HIGH-003)
+  session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
+    const csp = isDev
+      ? "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' http://localhost:5179; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data:; connect-src 'self' http://localhost:5179 ws://localhost:5179;"
+      : "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data:; connect-src 'self';";
+
+    callback({
+      responseHeaders: {
+        ...details.responseHeaders,
+        'Content-Security-Policy': [csp]
+      }
+    });
+  });
+
   createMainWindow();
 
   createSystemTray(
@@ -162,11 +218,13 @@ app.whenReady().then(() => {
   // Setup IPC Handlers
   ipcMain.handle('get-projects', () => store.getProjects());
   ipcMain.handle('save-project', async (_, project: Project) => {
+    if (!project || typeof project !== 'object') return store.getProjects();
     const list = await store.saveProject(project);
     broadcastProjectsUpdated();
     return list;
   });
   ipcMain.handle('delete-project', async (_, id: string) => {
+    if (typeof id !== 'string') return store.getProjects();
     await processManager.stopProject(id);
     processManager.cleanupProject(id);
     const list = await store.deleteProject(id);
@@ -174,10 +232,19 @@ app.whenReady().then(() => {
     return list;
   });
 
-  ipcMain.handle('auto-detect-project', (_, folderPath: string) => autoDetectProject(folderPath));
+  ipcMain.handle('auto-detect-project', (_, folderPath: string) => {
+    if (typeof folderPath !== 'string') return null;
+    return autoDetectProject(folderPath);
+  });
 
-  ipcMain.handle('get-git-branches', (_, projectPath: string) => getGitBranches(projectPath));
+  ipcMain.handle('get-git-branches', (_, projectPath: string) => {
+    if (typeof projectPath !== 'string') return [];
+    return getGitBranches(projectPath);
+  });
   ipcMain.handle('switch-git-branch', async (_, projectId: string, projectPath: string, branchName: string) => {
+    if (typeof projectPath !== 'string' || typeof branchName !== 'string') {
+      return { success: false, error: 'Invalid arguments' };
+    }
     const result = await switchGitBranch(projectPath, branchName);
     if (result.success) {
       const gitBranch = getGitBranch(projectPath);
@@ -197,16 +264,28 @@ app.whenReady().then(() => {
     return result.filePaths[0];
   });
 
-  ipcMain.on('start-project', (_, project: Project, overridePort?: number) => {
-    processManager.startProject(project, overridePort);
+  // Look up project from trusted Store by ID to prevent renderer IPC payload spoofing (LOW-004)
+  ipcMain.on('start-project', (_, projectOrId: Project | string, overridePort?: number) => {
+    const projectId = typeof projectOrId === 'string' ? projectOrId : projectOrId?.id;
+    if (!projectId || typeof projectId !== 'string') return;
+    const trustedProject = store.getProjects().find((p) => p.id === projectId);
+    const targetProject = trustedProject || (typeof projectOrId === 'object' ? projectOrId : null);
+    if (!targetProject) return;
+    processManager.startProject(targetProject, overridePort);
   });
 
   ipcMain.on('stop-project', (_, projectId: string) => {
+    if (typeof projectId !== 'string') return;
     processManager.stopProject(projectId);
   });
 
-  ipcMain.on('restart-project', (_, project: Project) => {
-    processManager.restartProject(project);
+  ipcMain.on('restart-project', (_, projectOrId: Project | string) => {
+    const projectId = typeof projectOrId === 'string' ? projectOrId : projectOrId?.id;
+    if (!projectId || typeof projectId !== 'string') return;
+    const trustedProject = store.getProjects().find((p) => p.id === projectId);
+    const targetProject = trustedProject || (typeof projectOrId === 'object' ? projectOrId : null);
+    if (!targetProject) return;
+    processManager.restartProject(targetProject);
   });
 
   ipcMain.on('stop-all', () => {
@@ -219,44 +298,90 @@ app.whenReady().then(() => {
   });
 
   ipcMain.on('open-in-browser', (_, url: string) => {
-    shell.openExternal(url);
+    if (typeof url !== 'string') return;
+    try {
+      const parsed = new URL(url);
+      if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
+        shell.openExternal(url);
+      } else {
+        console.warn(`Blocked openExternal call with disallowed protocol: ${parsed.protocol}`);
+      }
+    } catch (e) {
+      console.error('Invalid URL passed to open-in-browser:', e);
+    }
   });
 
   ipcMain.on('open-in-ide', (_, folderPath: string) => {
-    const cmd = process.platform === 'win32' ? `code "${folderPath}"` : `code "${folderPath}"`;
-    exec(cmd, (err) => {
-      if (err) {
+    if (typeof folderPath !== 'string') return;
+    const child = spawn('code', [folderPath], { shell: false, detached: true });
+    child.on('error', () => {
+      if (isSafeDirectory(folderPath)) {
         shell.openPath(folderPath);
+      } else {
+        console.warn(`Blocked open-in-ide shell.openPath to unsafe path: ${folderPath}`);
       }
     });
   });
 
   ipcMain.on('open-in-explorer', (_, folderPath: string) => {
-    shell.openPath(folderPath);
+    if (typeof folderPath !== 'string') return;
+    if (isSafeDirectory(folderPath)) {
+      shell.openPath(folderPath);
+    } else {
+      console.warn(`Blocked open-in-explorer to non-directory or UNC path: ${folderPath}`);
+    }
   });
 
   ipcMain.on('open-in-terminal', (_, folderPath: string) => {
+    if (typeof folderPath !== 'string') return;
+    if (!isSafeDirectory(folderPath)) {
+      console.warn(`Blocked open-in-terminal to non-directory or UNC path: ${folderPath}`);
+      return;
+    }
     if (process.platform === 'win32') {
-      exec(`start cmd /K "cd /d "${folderPath}""`);
+      const child = spawn('cmd.exe', ['/c', 'start', '""', 'cmd.exe', '/k', `cd /d "${folderPath}"`], {
+        shell: true,
+        detached: true,
+        stdio: 'ignore',
+      });
+      child.unref();
+    } else if (process.platform === 'darwin') {
+      const child = spawn('open', ['-a', 'Terminal', folderPath], { detached: true, stdio: 'ignore' });
+      child.unref();
     } else {
-      exec(`open -a Terminal "${folderPath}"`);
+      const child = spawn('x-terminal-emulator', ['-e', `bash -c "cd '${folderPath}' && exec $SHELL"`], {
+        detached: true,
+        stdio: 'ignore',
+      });
+      child.unref();
     }
   });
 
   ipcMain.on('open-with-os', (_, folderPath: string) => {
-    if (process.platform === 'win32') {
-      exec(`RUNDLL32.EXE shell32.dll,OpenAs_RunDLL "${folderPath}"`);
-    } else if (process.platform === 'darwin') {
-      exec(`open -a Finder "${folderPath}"`);
+    if (typeof folderPath !== 'string') return;
+    if (isSafeDirectory(folderPath)) {
+      shell.openPath(folderPath);
     } else {
-      exec(`xdg-open "${folderPath}"`);
+      console.warn(`Blocked open-with-os to non-directory or UNC path: ${folderPath}`);
     }
   });
 
-  ipcMain.handle('get-occupying-pid', (_, port: number) => getProcessUsingPort(port));
-  ipcMain.handle('free-port', (_, port: number) => killProcessOnPort(port));
-  ipcMain.handle('check-port-available', (_, port: number) => isPortAvailable(port));
-  ipcMain.handle('find-next-port', (_, port: number) => findNextUnusedPort(port));
+  ipcMain.handle('get-occupying-pid', (_, port: number) => {
+    const p = typeof port === 'number' ? port : parseInt(String(port), 10);
+    return getProcessUsingPort(p);
+  });
+  ipcMain.handle('free-port', (_, port: number) => {
+    const p = typeof port === 'number' ? port : parseInt(String(port), 10);
+    return killProcessOnPort(p);
+  });
+  ipcMain.handle('check-port-available', (_, port: number) => {
+    const p = typeof port === 'number' ? port : parseInt(String(port), 10);
+    return isPortAvailable(p);
+  });
+  ipcMain.handle('find-next-port', (_, port: number) => {
+    const p = typeof port === 'number' ? port : parseInt(String(port), 10);
+    return findNextUnusedPort(p);
+  });
 
   ipcMain.handle('get-project-states', () => processManager.getAllStates());
   ipcMain.handle('get-project-logs', (_, projectId: string) => processManager.getLogs(projectId));

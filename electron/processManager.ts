@@ -1,4 +1,5 @@
 import { spawn, ChildProcess } from 'child_process';
+import path from 'path';
 import kill from 'tree-kill';
 import os from 'os';
 import { BrowserWindow } from 'electron';
@@ -166,34 +167,62 @@ export class ProcessManager {
   private getEffectiveCommandAndEnv(project: Project, targetPort: number): { command: string; env: Record<string, string>; allocatedCap: number } {
     const allocatedCap = this.calculateDynamicMemoryLimit(project);
 
-    // Inject NODE_OPTIONS heap limit and disable watcher polling loops
+    // Inject safe NODE_OPTIONS heap limit and disable watcher polling loops
     const existingNodeOptions = process.env.NODE_OPTIONS || '';
     const nodeOptions = `${existingNodeOptions} --max-old-space-size=${allocatedCap}`.trim();
 
+    // Disallow dangerous runtime/system environment variable overrides from untrusted project configs
+    const BLOCKED_ENV_KEYS = new Set([
+      'NODE_OPTIONS',
+      'ELECTRON_RUN_AS_NODE',
+      'PYTHONPATH',
+      'PERLLIB',
+      'PERL5LIB',
+      'RUBYLIB',
+      'COMSPEC',
+      'PATH',
+      'PATHEXT',
+      'LD_PRELOAD',
+      'LD_LIBRARY_PATH',
+      'DYLD_INSERT_LIBRARIES',
+      'DYLD_LIBRARY_PATH',
+    ]);
+
+    const sanitizedCustomEnv: Record<string, string> = {};
+    if (project.environmentVars && typeof project.environmentVars === 'object') {
+      for (const [key, val] of Object.entries(project.environmentVars)) {
+        if (!BLOCKED_ENV_KEYS.has(key.toUpperCase()) && typeof val === 'string') {
+          sanitizedCustomEnv[key] = val;
+        }
+      }
+    }
+
+    const safePort = Number.isInteger(targetPort) && targetPort > 0 && targetPort <= 65535 ? targetPort : 3000;
+
     const env: Record<string, string> = {
       ...process.env as Record<string, string>,
-      PORT: targetPort.toString(),
+      PORT: safePort.toString(),
       CI: 'true',
       BROWSER: 'none',
       FORCE_COLOR: '1',
       NODE_OPTIONS: nodeOptions,
       CHOKIDAR_USEPOLLING: 'false',
       WATCHPACK_POLLING: 'false',
-      ...(project.environmentVars || {}),
+      ...sanitizedCustomEnv,
     };
 
     let command = project.command.trim();
     const hasPortArg = /(--port|-p)\s+\d+/i.test(command) || /\bPORT=/i.test(command);
 
-    if (!hasPortArg && targetPort) {
+    if (!hasPortArg && safePort) {
       if (/^npm\s+(run|start|test)/i.test(command)) {
-        command = `${command} -- --port ${targetPort}`;
+        command = `${command} -- --port ${safePort}`;
       } else if (/^(yarn|pnpm|bun)\s+/i.test(command)) {
-        command = `${command} --port ${targetPort}`;
+        command = `${command} --port ${safePort}`;
       } else if (/^(vite|npx\s+vite)/i.test(command)) {
-        command = `${command} --port ${targetPort}`;
+        command = `${command} --port ${safePort}`;
       } else if (/^(next|npx\s+next)/i.test(command)) {
-        command = `${command} -p ${targetPort}`;
+        command = `${command} -p ${safePort}`;
       }
     }
 
@@ -236,10 +265,24 @@ export class ProcessManager {
     logSystem(`Command: ${effectiveCommand}`);
 
     try {
-      const child = spawn(effectiveCommand, [], {
+      // Sanitize shell chaining metacharacters (&, |, ;, `, $, \n, \r, <, >) to prevent shell injection (CRIT-001)
+      const sanitizedCommand = effectiveCommand.replace(/[&|;`$\r\n<>]/g, '');
+
+      const isWin = process.platform === 'win32';
+      const shellBin = isWin ? (process.env.ComSpec || 'cmd.exe') : '/bin/sh';
+      const shellArgs = isWin ? ['/d', '/s', '/c', sanitizedCommand] : ['-c', sanitizedCommand];
+
+      const child = spawn(shellBin, shellArgs, {
         cwd: project.path,
-        shell: true,
         env: effectiveEnv,
+        windowsVerbatimArguments: isWin,
+      });
+
+      child.on('error', (err) => {
+        this.clearStartupTimer(project.id);
+        logSystem(`Process error: ${err.message}`);
+        this.activeProcesses.delete(project.id);
+        this.broadcastStateChange(project.id, { status: 'failed', error: err.message });
       });
 
       if (!child.pid) {
@@ -321,12 +364,7 @@ export class ProcessManager {
         });
       });
 
-      child.on('error', (err) => {
-        this.clearStartupTimer(project.id);
-        logSystem(`Process error: ${err.message}`);
-        this.activeProcesses.delete(project.id);
-        this.broadcastStateChange(project.id, { status: 'failed', error: err.message });
-      });
+
 
       child.on('exit', (code, signal) => {
         this.clearStartupTimer(project.id);

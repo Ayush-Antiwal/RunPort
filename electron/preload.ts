@@ -10,9 +10,9 @@ export const api = {
   selectFolder: (): Promise<string | null> => ipcRenderer.invoke('select-folder'),
 
   // Server Management
-  startProject: (project: Project, overridePort?: number) => ipcRenderer.send('start-project', project, overridePort),
+  startProject: (project: Project | string, overridePort?: number) => ipcRenderer.send('start-project', project, overridePort),
   stopProject: (projectId: string) => ipcRenderer.send('stop-project', projectId),
-  restartProject: (project: Project) => ipcRenderer.send('restart-project', project),
+  restartProject: (project: Project | string) => ipcRenderer.send('restart-project', project),
   stopAll: () => ipcRenderer.send('stop-all'),
   startAll: () => ipcRenderer.send('start-all'),
   openInBrowser: (url: string) => ipcRenderer.send('open-in-browser', url),

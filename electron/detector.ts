@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import net from 'net';
-import { exec } from 'child_process';
+import { execFile } from 'child_process';
 import kill from 'tree-kill';
 import util from 'util';
 import { FrameworkType } from './types';
@@ -12,8 +12,6 @@ export interface DetectionResult {
   command: string;
   port: number;
 }
-
-
 
 export function getGitBranch(projectPath: string): string | undefined {
   try {
@@ -31,11 +29,11 @@ export function getGitBranch(projectPath: string): string | undefined {
   return undefined;
 }
 
-const execPromise = util.promisify(exec);
+const execFilePromise = util.promisify(execFile);
 
 export async function getGitBranches(projectPath: string): Promise<string[]> {
   try {
-    const { stdout } = await execPromise('git branch --no-color --format="%(refname:short)"', { cwd: projectPath });
+    const { stdout } = await execFilePromise('git', ['branch', '--no-color', '--format=%(refname:short)'], { cwd: projectPath });
     return stdout.split('\n').map(b => b.trim()).filter(Boolean);
   } catch (e) {
     return [];
@@ -43,8 +41,12 @@ export async function getGitBranches(projectPath: string): Promise<string[]> {
 }
 
 export async function switchGitBranch(projectPath: string, branchName: string): Promise<{ success: boolean; error?: string }> {
+  // Validate branch name against safe git ref naming standard to prevent argument or command injection
+  if (!branchName || typeof branchName !== 'string' || !/^[\w./-]+$/.test(branchName) || branchName.startsWith('-')) {
+    return { success: false, error: 'Invalid branch name format' };
+  }
   try {
-    await execPromise(`git checkout ${branchName}`, { cwd: projectPath });
+    await execFilePromise('git', ['switch', branchName], { cwd: projectPath });
     return { success: true };
   } catch (e: any) {
     console.error('Failed to switch branch:', e);
@@ -54,7 +56,7 @@ export async function switchGitBranch(projectPath: string, branchName: string): 
 }
 
 export async function isPortAvailable(port: number): Promise<boolean> {
-  if (!port || isNaN(port)) return true;
+  if (!port || isNaN(port) || port < 1 || port > 65535) return true;
   const pid = await getProcessUsingPort(port);
   if (pid) return false;
   return new Promise((resolve) => {
@@ -67,12 +69,11 @@ export async function isPortAvailable(port: number): Promise<boolean> {
   });
 }
 
-
-
 const portPidCache = new Map<number, { pid: number | null; timestamp: number }>();
 const CACHE_TTL_MS = 500;
 
 export function getProcessUsingPort(port: number): Promise<number | null> {
+  if (!port || isNaN(port) || port < 1 || port > 65535) return Promise.resolve(null);
   const now = Date.now();
   const cached = portPidCache.get(port);
   if (cached && now - cached.timestamp < CACHE_TTL_MS) {
@@ -81,14 +82,16 @@ export function getProcessUsingPort(port: number): Promise<number | null> {
 
   return new Promise((resolve) => {
     if (process.platform === 'win32') {
-      exec(`netstat -ano | findstr LISTENING | findstr :${port}`, (err, stdout) => {
+      execFile('netstat', ['-ano'], (err, stdout) => {
         if (err || !stdout.trim()) {
           portPidCache.set(port, { pid: null, timestamp: Date.now() });
           return resolve(null);
         }
         const lines = stdout.trim().split('\n');
         for (const line of lines) {
-          const parts = line.trim().split(/\s+/);
+          const trimmed = line.trim();
+          if (!trimmed.includes('LISTENING')) continue;
+          const parts = trimmed.split(/\s+/);
           const localAddr = parts[1] || '';
           if (localAddr.endsWith(`:${port}`)) {
             const pidStr = parts[parts.length - 1];
@@ -103,7 +106,7 @@ export function getProcessUsingPort(port: number): Promise<number | null> {
         resolve(null);
       });
     } else {
-      exec(`lsof -i :${port} -t`, (err, stdout) => {
+      execFile('lsof', ['-i', `:${port}`, '-t'], (err, stdout) => {
         if (err || !stdout.trim()) {
           portPidCache.set(port, { pid: null, timestamp: Date.now() });
           return resolve(null);
@@ -126,10 +129,16 @@ export function clearPortPidCache(port?: number) {
 }
 
 export function killProcessOnPort(port: number): Promise<boolean> {
+  // Enforce valid port range and guard privileged system ports
+  if (!port || isNaN(port) || port < 1024 || port > 65535) {
+    console.warn(`Blocked attempt to kill process on system or invalid port: ${port}`);
+    return Promise.resolve(false);
+  }
+
   return new Promise(async (resolve) => {
     clearPortPidCache(port);
     const pid = await getProcessUsingPort(port);
-    if (!pid) return resolve(true);
+    if (!pid || pid <= 0) return resolve(true);
     kill(pid, 'SIGKILL', (err) => {
       if (err) console.error(`Failed to kill process on port ${port} (PID ${pid}):`, err);
       clearPortPidCache(port);
