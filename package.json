@@ -53,11 +53,15 @@
         "nsis",
         "portable"
       ],
+      "icon": "public/icon.ico",
       "verifyUpdateCodeSignature": false
     },
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
+      "installerIcon": "public/icon.ico",
+      "uninstallerIcon": "public/icon.ico",
+      "installerHeaderIcon": "public/icon.ico",
       "license": "LICENSE.txt"
     }
   }
