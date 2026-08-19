@@ -8,15 +8,22 @@ export function createSystemTray(
   startAll: () => void,
   stopAll: () => void
 ): Tray {
-  // Create simple native tray icon programmatically (16x16 canvas icon)
-  const icon = nativeImage.createFromBuffer(
-    Buffer.from(
-      'iVBORw0KGgoAAAANSU56GgoAAAANSU5EUgAAABAAAAAQCAYAAAAf8/9hAAAAMUlEQVR42mNkYPj/nwEHYESlYWSgHDAaAEwDE0NzBkwD08AE0ZwB08A0MEE0Z8BA5wAA6S4W5pYn1K0AAAAASUVORK5CYII=',
-      'base64'
-    )
-  );
+  let iconPath = path.join(app.getAppPath(), 'RunPort.png');
+  let icon = nativeImage.createFromPath(iconPath);
+  if (icon.isEmpty()) {
+    iconPath = path.join(__dirname, 'assets', 'icon.png');
+    icon = nativeImage.createFromPath(iconPath);
+  }
+  if (icon.isEmpty()) {
+    icon = nativeImage.createFromBuffer(
+      Buffer.from(
+        'iVBORw0KGgoAAAANSU56GgoAAAANSU5EUgAAABAAAAAQCAYAAAAf8/9hAAAAMUlEQVR42mNkYPj/nwEHYESlYWSgHDAaAEwDE0NzBkwD08AE0ZwB08A0MEE0Z8BA5wAA6S4W5pYn1K0AAAAASUVORK5CYII=',
+        'base64'
+      )
+    );
+  }
 
-  const tray = new Tray(icon);
+  const tray = new Tray(icon.resize({ width: 16, height: 16 }));
   tray.setToolTip('Local Server Manager');
 
   const contextMenu = Menu.buildFromTemplate([
@@ -57,12 +64,19 @@ export function createSystemTray(
 
   tray.setContextMenu(contextMenu);
 
+  // Single-click on system tray icon toggles / opens the floating desktop widget
+  tray.on('click', () => {
+    toggleWidget();
+  });
+
   tray.on('double-click', () => {
     const mainWin = mainWindowGetter();
     if (mainWin) {
       if (mainWin.isMinimized()) mainWin.restore();
       mainWin.show();
       mainWin.focus();
+    } else {
+      toggleWidget();
     }
   });
 

@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, dialog, shell, nativeImage, session } from 'electron';
+import { app, BrowserWindow, ipcMain, dialog, shell, nativeImage, session, NativeImage } from 'electron';
 import path from 'path';
 import fs from 'fs';
 import { spawn } from 'child_process';
@@ -62,13 +62,25 @@ function attachSecurityGuards(window: BrowserWindow) {
   });
 }
 
+function getAppNativeIcon(): NativeImage {
+  let iconPath = path.join(app.getAppPath(), 'RunPort.png');
+  let icon = nativeImage.createFromPath(iconPath);
+  if (icon.isEmpty()) {
+    iconPath = path.join(__dirname, 'assets', 'icon.png');
+    icon = nativeImage.createFromPath(iconPath);
+  }
+  return icon;
+}
+
 function createMainWindow() {
+  const appIcon = getAppNativeIcon();
   mainWindow = new BrowserWindow({
     width: 1100,
     height: 750,
     minWidth: 500,
     minHeight: 300,
     title: 'RunPort',
+    icon: appIcon,
     backgroundColor: '#0f172a',
     show: false,
     webPreferences: {
@@ -113,14 +125,7 @@ function createMainWindow() {
 
 function createWidgetWindow() {
   const settings = store.getSettings();
-  
-  // A valid 32x32 blue/cyan square PNG icon (base64 encoded) so it loads correctly in Windows taskbar/system tray
-  const widgetIcon = nativeImage.createFromBuffer(
-    Buffer.from(
-      'iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAIKADAAQAAAABAAAAIAAAAAC01SahAAAAbklEQVRYCe1XwQoAIAiD/v8n99xChKAu2p5EkMpqbrNuZkRkiWifgLg9gA+A4K4D8gQpB5g9QcoBZk+QcoDZE6QcYPYEKafeA+3e4q8BvP7gLgB8AAR3HZDn12PvRjDqj896nN42c0XUBg9a/hWz6xP4ogAAAABJRU5ErkJggg==',
-      'base64'
-    )
-  );
+  const widgetIcon = getAppNativeIcon();
 
   widgetWindow = new BrowserWindow({
     width: 320,
@@ -166,6 +171,7 @@ function toggleWidgetWindow() {
       widgetWindow.hide();
     } else {
       widgetWindow.show();
+      widgetWindow.focus();
     }
   } else {
     createWidgetWindow();
