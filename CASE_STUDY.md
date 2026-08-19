@@ -153,19 +153,19 @@ Electron's `contextBridge` is used exclusively for all main-to-renderer communic
 
 The original MVP spec defined 11 required capabilities. All 11 shipped:
 
-| # | Requirement | Status |
-|---|---|---|
-| 1 | Add a project | ✅ |
-| 2 | Save project for future use | ✅ |
-| 3 | Configure or detect dev server | ✅ |
-| 4 | Start the server | ✅ |
-| 5 | Stop the server | ✅ |
-| 6 | Restart the server | ✅ |
-| 7 | Display current server status | ✅ |
-| 8 | Display local URL and port | ✅ |
-| 9 | Open project in browser | ✅ |
-| 10 | View basic server output | ✅ |
-| 11 | Manage multiple projects simultaneously | ✅ |
+| #   | Requirement                             | Status |
+| -----| -----------------------------------------| --------|
+| 1   | Add a project                           | ✅      |
+| 2   | Save project for future use             | ✅      |
+| 3   | Configure or detect dev server          | ✅      |
+| 4   | Start the server                        | ✅      |
+| 5   | Stop the server                         | ✅      |
+| 6   | Restart the server                      | ✅      |
+| 7   | Display current server status           | ✅      |
+| 8   | Display local URL and port              | ✅      |
+| 9   | Open project in browser                 | ✅      |
+| 10  | View basic server output                | ✅      |
+| 11  | Manage multiple projects simultaneously | ✅      |
 
 Additional features delivered beyond MVP:
 - Floating always-on-top widget
