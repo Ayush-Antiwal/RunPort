@@ -15,6 +15,10 @@ const DEFAULT_SETTINGS: AppSettings = {
   enableDynamicMemory: true,
   defaultMaxMemoryMb: 1024,
   enableAppMemoryOptimization: true,
+  enableIdleAutoStop: false,
+  idleTimeoutMinutes: 30,
+  stopServersOnAppClose: true,
+  autoStopOnSystemSuspend: true,
 };
 
 export class Store {

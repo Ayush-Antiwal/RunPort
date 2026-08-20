@@ -21,6 +21,8 @@ export interface Project {
   command: string;
   port: number;
   autoStart?: boolean;
+  idleAutoStopEnabled?: boolean;
+  idleTimeoutMinutes?: number;
   environmentVars?: Record<string, string>;
   maxMemoryMb?: number;
   createdAt: string;
@@ -36,6 +38,8 @@ export interface ProjectRuntimeState {
   gitBranch?: string;
   isSleeping?: boolean;
   memoryMb?: number;
+  lastActivityAt?: string;
+  autoStoppedReason?: 'idle' | 'suspend' | 'memory-limit' | 'app-quit';
 }
 
 export interface AppSettings {
@@ -46,6 +50,10 @@ export interface AppSettings {
   enableDynamicMemory: boolean;
   defaultMaxMemoryMb: number;
   enableAppMemoryOptimization: boolean;
+  enableIdleAutoStop?: boolean;
+  idleTimeoutMinutes?: number;
+  stopServersOnAppClose?: boolean;
+  autoStopOnSystemSuspend?: boolean;
 }
 
 export interface LogLine {
