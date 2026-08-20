@@ -1,48 +1,22 @@
 import React, { useEffect, useState } from 'react';
 import { Layers, Plus } from 'lucide-react';
-import { Project, ProjectRuntimeState } from '../../electron/types';
+import { ProjectRuntimeState } from '../../electron/types';
 import { Sidebar } from '../components/Sidebar';
 import { ProjectDetailView } from '../components/ProjectDetailView';
 import { EmbeddedTerminal } from '../components/EmbeddedTerminal';
 import { AddProjectModal } from '../components/AddProjectModal';
 import { SettingsModal } from '../components/SettingsModal';
 import { Button } from '../components/ui/button';
+import { useProjectsAndStates } from '../hooks/useProjectsAndStates';
 
 export const DashboardView: React.FC = () => {
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [states, setStates] = useState<Record<string, ProjectRuntimeState>>({});
+  const { projects, states, saveProject, deleteProject } = useProjectsAndStates();
+
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isAddModalOpen, setIsAddModalOpen] = useState<boolean>(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
   const [settingsInitialTab, setSettingsInitialTab] = useState<'general' | 'projects'>('general');
-  const [isSidebarCompact, setIsSidebarCompact] = useState(false);
-
-  const loadProjectsAndStates = async () => {
-    try {
-      const list = await window.electronAPI.getProjects();
-      const currentStates = await window.electronAPI.getProjectStates();
-      const projList = list || [];
-      setProjects(projList);
-      setStates(currentStates || {});
-      if (projList.length > 0 && !selectedProjectId) setSelectedProjectId(projList[0].id);
-    } catch (err) {
-      console.error('Failed to load projects/states:', err);
-    }
-  };
-
-  useEffect(() => {
-    loadProjectsAndStates();
-    const unsub = window.electronAPI.onProjectStateChanged(({ projectId, state }) => {
-      setStates((prev) => ({ ...prev, [projectId]: state }));
-    });
-    const unsubList = window.electronAPI.onProjectsUpdated?.((list) => {
-      setProjects(list || []);
-    });
-    return () => {
-      unsub();
-      if (unsubList) unsubList();
-    };
-  }, []);
+  const [isSidebarCompact, setIsSidebarCompact] = useState<boolean>(false);
 
   useEffect(() => {
     const handleResize = () => {
@@ -63,22 +37,16 @@ export const DashboardView: React.FC = () => {
     } else {
       setSelectedProjectId(null);
     }
-  }, [projects]);
+  }, [projects, selectedProjectId]);
 
-  const selectedProject = projects.find((p) => p.id === selectedProjectId) || null;
+  const selectedProject = projects.find((p) => p.id === selectedProjectId) ?? null;
   const selectedState: ProjectRuntimeState = selectedProject
-    ? states[selectedProject.id] || { status: 'idle' }
+    ? states[selectedProject.id] ?? { status: 'idle' }
     : { status: 'idle' };
 
-  const handleSaveProject = async (project: Project) => {
-    const updated = await window.electronAPI.saveProject(project);
-    setProjects(updated);
-  };
-
   const handleDelete = async (id: string) => {
-    if (confirm('Remove this project? (Source files will not be deleted)')) {
-      const updated = await window.electronAPI.deleteProject(id);
-      setProjects(updated);
+    if (window.confirm('Remove this project? (Source files will not be deleted)')) {
+      await deleteProject(id);
     }
   };
 
@@ -92,12 +60,13 @@ export const DashboardView: React.FC = () => {
           selectedProjectId={selectedProjectId}
           onSelectProject={setSelectedProjectId}
           onOpenAddModal={() => setIsAddModalOpen(true)}
-          onStartAll={() => window.electronAPI.startAll()}
-          onStopAll={() => window.electronAPI.stopAll()}
           onToggleWidget={() => window.electronAPI.toggleWidgetWindow()}
-          onOpenSettings={() => { setSettingsInitialTab('general'); setIsSettingsOpen(true); }}
+          onOpenSettings={() => {
+            setSettingsInitialTab('general');
+            setIsSettingsOpen(true);
+          }}
           isCompact={isSidebarCompact}
-          onToggleCompact={() => setIsSidebarCompact(!isSidebarCompact)}
+          onToggleCompact={() => setIsSidebarCompact((prev) => !prev)}
         />
       </div>
 
@@ -111,9 +80,6 @@ export const DashboardView: React.FC = () => {
                 state={selectedState}
                 onStart={(p, portOverride) => window.electronAPI.startProject(p, portOverride)}
                 onStop={(id) => window.electronAPI.stopProject(id)}
-                onRestart={(p) => window.electronAPI.restartProject(p)}
-                onDelete={handleDelete}
-                onSaveProject={handleSaveProject}
               />
             </div>
 
@@ -143,12 +109,16 @@ export const DashboardView: React.FC = () => {
         )}
       </main>
 
-      <AddProjectModal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} onSave={handleSaveProject} />
+      <AddProjectModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        onSave={saveProject}
+      />
       <SettingsModal
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
         projects={projects}
-        onSaveProject={handleSaveProject}
+        onSaveProject={saveProject}
         onDeleteProject={handleDelete}
         initialTab={settingsInitialTab}
       />

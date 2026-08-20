@@ -1,37 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Play, Square, ExternalLink, GripHorizontal, X, Minus, LayoutDashboard } from 'lucide-react';
-import { Project, ProjectRuntimeState } from '../../electron/types';
 import { Badge } from '../components/ui/badge';
 import { cn } from '@/lib/utils';
+import { useProjectsAndStates } from '../hooks/useProjectsAndStates';
 
 export const DesktopWidgetView: React.FC = () => {
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [states, setStates] = useState<Record<string, ProjectRuntimeState>>({});
-
-  const loadData = async () => {
-    try {
-      const list = await window.electronAPI.getProjects();
-      const currentStates = await window.electronAPI.getProjectStates();
-      setProjects(list || []);
-      setStates(currentStates || {});
-    } catch (e) {
-      console.error('Widget data load failed:', e);
-    }
-  };
-
-  useEffect(() => {
-    loadData();
-    const unsubState = window.electronAPI.onProjectStateChanged(({ projectId, state }) => {
-      setStates((prev) => ({ ...prev, [projectId]: state }));
-    });
-    const unsubList = window.electronAPI.onProjectsUpdated?.((list) => {
-      setProjects(list || []);
-    });
-    return () => {
-      unsubState();
-      if (unsubList) unsubList();
-    };
-  }, []);
+  const { projects, states } = useProjectsAndStates();
 
   const runningCount = Object.values(states).filter((s) => s.status === 'running').length;
 
@@ -79,7 +53,7 @@ export const DesktopWidgetView: React.FC = () => {
           </div>
         ) : (
           projects.map((project) => {
-            const state = states[project.id] || { status: 'idle' };
+            const state = states[project.id] ?? { status: 'idle' };
             const isRunning = state.status === 'running';
             const isStarting = state.status === 'starting';
             const activePort = (isRunning && state.actualPort) ? state.actualPort : project.port;

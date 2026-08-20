@@ -19,6 +19,45 @@ const getLogColor = (log: LogLine): string => {
   return '#e2e8f0';
 };
 
+// Helper to parse URLs in log text and render them as clickable links
+const renderFormattedLogText = (text: string) => {
+  const urlPattern = /(https?:\/\/[^\s"'<>\)]+)/g;
+  const parts = text.split(urlPattern);
+
+  if (parts.length === 1) return text;
+
+  return parts.map((part, index) => {
+    if (/^https?:\/\//i.test(part)) {
+      const match = part.match(/^(https?:\/\/[^\s"'<>\)]+?)([\.,;\)]?)$/);
+      const url = match ? match[1] : part;
+      const trailing = match ? match[2] : '';
+
+      return (
+        <React.Fragment key={index}>
+          <a
+            href={url}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              if (window.electronAPI?.openInBrowser) {
+                window.electronAPI.openInBrowser(url);
+              } else {
+                window.open(url, '_blank', 'noopener,noreferrer');
+              }
+            }}
+            className="underline underline-offset-2 text-blue-400 hover:text-blue-300 font-semibold cursor-pointer transition-colors"
+            title={`Click to open ${url} in browser`}
+          >
+            {url}
+          </a>
+          {trailing}
+        </React.Fragment>
+      );
+    }
+    return part;
+  });
+};
+
 export const EmbeddedTerminal: React.FC<EmbeddedTerminalProps> = ({ project, state, onStart }) => {
   const [logs, setLogs] = useState<LogLine[]>([]);
   const [filter, setFilter] = useState('');
@@ -27,7 +66,7 @@ export const EmbeddedTerminal: React.FC<EmbeddedTerminalProps> = ({ project, sta
 
   useEffect(() => {
     if (!project) return;
-    window.electronAPI.getProjectLogs(project.id).then((l) => setLogs((l || []).slice(-200)));
+    window.electronAPI.getProjectLogs(project.id).then((l) => setLogs((l ?? []).slice(-200)));
 
     const unsubBatched = window.electronAPI.onProjectLogsBatched?.((data) => {
       if (data.projectId === project.id && data.logs?.length > 0) {
@@ -46,7 +85,7 @@ export const EmbeddedTerminal: React.FC<EmbeddedTerminalProps> = ({ project, sta
     });
 
     return () => {
-      if (unsubBatched) unsubBatched();
+      unsubBatched?.();
       unsubSingle();
       unsubCleared();
     };
@@ -173,7 +212,7 @@ export const EmbeddedTerminal: React.FC<EmbeddedTerminalProps> = ({ project, sta
               className="mb-0.5 whitespace-pre-wrap break-words select-text hover:bg-white/[0.02] px-1 rounded transition-colors"
             >
               <span className="text-[#3b3b4a] text-[0.68rem] mr-2 select-none font-mono">[{log.timestamp}]</span>
-              {log.text}
+              {renderFormattedLogText(log.text)}
             </div>
           ))
         )}

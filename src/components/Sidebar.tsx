@@ -2,8 +2,6 @@ import React, { useState } from "react";
 import {
   Plus,
   Search,
-  Play,
-  Square,
   Monitor,
   Settings as SettingsIcon,
   PanelLeft,
@@ -17,8 +15,6 @@ interface SidebarProps {
   selectedProjectId: string | null;
   onSelectProject: (id: string) => void;
   onOpenAddModal: () => void;
-  onStartAll: () => void;
-  onStopAll: () => void;
   onToggleWidget: () => void;
   onOpenSettings: () => void;
   isCompact?: boolean;
@@ -34,8 +30,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
   selectedProjectId,
   onSelectProject,
   onOpenAddModal,
-  onStartAll,
-  onStopAll,
   onToggleWidget,
   onOpenSettings,
   isCompact = false,
