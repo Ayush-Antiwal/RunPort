@@ -14,6 +14,8 @@ import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { FormField, FormLabel, FormGrid } from './ui/form';
 
+import { FRAMEWORK_OPTIONS } from '../lib/constants';
+
 interface EditProjectModalProps {
   project: Project;
   isOpen: boolean;
@@ -26,6 +28,8 @@ interface FormState {
   command: string;
   port: number | string;
   framework: FrameworkType;
+  idleAutoStopEnabled: boolean;
+  idleTimeoutMinutes: number | string;
 }
 
 interface FormErrors {
@@ -33,8 +37,6 @@ interface FormErrors {
   command?: string;
   port?: string;
 }
-
-import { FRAMEWORK_OPTIONS } from '../lib/constants';
 
 export const EditProjectModal: React.FC<EditProjectModalProps> = ({
   project, isOpen, onClose, onSaveProject,
@@ -44,6 +46,8 @@ export const EditProjectModal: React.FC<EditProjectModalProps> = ({
     command: project.command,
     port: project.port,
     framework: project.framework,
+    idleAutoStopEnabled: project.idleAutoStopEnabled ?? false,
+    idleTimeoutMinutes: project.idleTimeoutMinutes ?? 30,
   });
 
   const [errors, setErrors] = useState<FormErrors>({});
@@ -56,12 +60,14 @@ export const EditProjectModal: React.FC<EditProjectModalProps> = ({
         command: project.command,
         port: project.port,
         framework: project.framework,
+        idleAutoStopEnabled: project.idleAutoStopEnabled ?? false,
+        idleTimeoutMinutes: project.idleTimeoutMinutes ?? 30,
       });
       setErrors({});
     }
   }, [isOpen, project]);
 
-  const handleChange = (field: keyof FormState, value: any) => {
+  const handleChange = <K extends keyof FormState>(field: K, value: FormState[K]) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
     if (errors[field as keyof FormErrors]) {
       setErrors((prev) => ({ ...prev, [field]: undefined }));
@@ -98,6 +104,8 @@ export const EditProjectModal: React.FC<EditProjectModalProps> = ({
       command: formData.command.trim(),
       port: Number(formData.port),
       framework: formData.framework,
+      idleAutoStopEnabled: formData.idleAutoStopEnabled,
+      idleTimeoutMinutes: Number(formData.idleTimeoutMinutes),
     });
     onClose();
   };
@@ -176,8 +184,39 @@ export const EditProjectModal: React.FC<EditProjectModalProps> = ({
                   ))}
                 </select>
               </FormField>
-
             </FormGrid>
+
+            {/* Per-Project Idle Auto-Stop Controls */}
+            <div className="bg-[#141418] border border-[#22222c] rounded-lg p-3 flex flex-col gap-2">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-xs font-medium text-white">Project Idle Auto-Stop</div>
+                  <div className="text-[0.7rem] text-zinc-400">Auto-stop server when idle for this project</div>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={formData.idleAutoStopEnabled}
+                  onChange={(e) => handleChange('idleAutoStopEnabled', e.target.checked)}
+                  className="w-4 h-4 accent-blue-500 cursor-pointer"
+                />
+              </div>
+
+              {formData.idleAutoStopEnabled && (
+                <div className="flex items-center justify-between pt-1 border-t border-[#1e1e26]">
+                  <span className="text-[0.7rem] text-zinc-300">Timeout (Minutes)</span>
+                  <select
+                    value={formData.idleTimeoutMinutes}
+                    onChange={(e) => handleChange('idleTimeoutMinutes', Number(e.target.value))}
+                    className="bg-[#0c0c0f] border border-[#2c2c3a] text-xs text-white px-2 py-1 rounded cursor-pointer"
+                  >
+                    <option value={15}>15 mins</option>
+                    <option value={30}>30 mins</option>
+                    <option value={60}>1 hour</option>
+                    <option value={120}>2 hours</option>
+                  </select>
+                </div>
+              )}
+            </div>
           </DialogBody>
 
           <DialogFooter>

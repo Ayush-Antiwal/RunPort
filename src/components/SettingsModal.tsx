@@ -12,8 +12,7 @@ import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { FormField, FormLabel, FormGrid } from './ui/form';
 import { Switch } from './ui/switch';
-import { Card, CardContent } from './ui/card';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from './ui/tabs';
+import { Card } from './ui/card';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -191,6 +190,45 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     description="Keep server manager running in system tray on close"
                     checked={settings.minimizeToTray}
                     onChange={() => handleToggle('minimizeToTray')}
+                  />
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <div className="text-[0.68rem] font-medium text-zinc-400">Server Lifecycle & Auto Close</div>
+                  <ToggleItem
+                    label="Idle Server Auto-Stop"
+                    description="Automatically shutdown servers after inactivity"
+                    checked={settings.enableIdleAutoStop ?? false}
+                    onChange={() => handleToggle('enableIdleAutoStop')}
+                  />
+                  {settings.enableIdleAutoStop && (
+                    <Card className="p-3 border-[#22222c] bg-[#141418] flex items-center justify-between gap-3">
+                      <div>
+                        <div className="text-xs font-medium text-white">Idle Timeout</div>
+                        <div className="text-[0.7rem] text-zinc-400">Minutes of inactivity before auto-stopping</div>
+                      </div>
+                      <select
+                        value={settings.idleTimeoutMinutes ?? 30}
+                        onChange={async (e) => {
+                          const val = parseInt(e.target.value, 10);
+                          const updated = { ...settings, idleTimeoutMinutes: val };
+                          setSettings(updated);
+                          await window.electronAPI.updateSettings(updated);
+                        }}
+                        className="bg-[#0c0c0f] border border-[#2c2c3a] text-xs text-white px-2 py-1 rounded cursor-pointer outline-none"
+                      >
+                        <option value={15}>15 mins</option>
+                        <option value={30}>30 mins</option>
+                        <option value={60}>1 hour</option>
+                        <option value={120}>2 hours</option>
+                      </select>
+                    </Card>
+                  )}
+                  <ToggleItem
+                    label="Auto-Stop on System Sleep"
+                    description="Shut down servers when computer enters sleep mode"
+                    checked={settings.autoStopOnSystemSuspend ?? true}
+                    onChange={() => handleToggle('autoStopOnSystemSuspend')}
                   />
                 </div>
               </div>

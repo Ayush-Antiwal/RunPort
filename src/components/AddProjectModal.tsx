@@ -14,13 +14,13 @@ import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { FormField, FormLabel, FormGrid } from './ui/form';
 
+import { FRAMEWORK_OPTIONS } from '../lib/constants';
+
 interface AddProjectModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (project: Project) => void;
 }
-
-import { FRAMEWORK_OPTIONS } from '../lib/constants';
 
 export const AddProjectModal: React.FC<AddProjectModalProps> = ({ isOpen, onClose, onSave }) => {
   const [path, setPath] = useState('');
