@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { DashboardView } from './views/DashboardView';
 import { DesktopWidgetView } from './views/DesktopWidgetView';
+import { SnackbarProvider } from './components/ui/snackbar';
 
 export const App: React.FC = () => {
   const [route, setRoute] = useState<string>('dashboard');
@@ -19,7 +20,11 @@ export const App: React.FC = () => {
     };
   }, []);
 
-  return route === 'widget' ? <DesktopWidgetView /> : <DashboardView />;
+  return (
+    <SnackbarProvider>
+      {route === 'widget' ? <DesktopWidgetView /> : <DashboardView />}
+    </SnackbarProvider>
+  );
 };
 
 export default App;

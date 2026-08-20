@@ -1,9 +1,8 @@
 import { spawn, ChildProcess } from 'child_process';
-import path from 'path';
 import kill from 'tree-kill';
 import os from 'os';
 import { BrowserWindow } from 'electron';
-import { Project, ProjectRuntimeState, LogLine } from './types';
+import { Project, ProjectRuntimeState, LogLine, AppSettings } from './types';
 import { getGitBranch, isPortAvailable, findNextUnusedPort, clearPortPidCache } from './detector';
 
 export class ProcessManager {
@@ -12,13 +11,78 @@ export class ProcessManager {
   private logs: Map<string, LogLine[]> = new Map();
   private pendingLogsQueue: Map<string, LogLine[]> = new Map();
   private projectConfigMap: Map<string, Project> = new Map();
+  private lastActivityTimestamps: Map<string, number> = new Map();
   private windowGetter: () => (BrowserWindow | null)[];
+  private settingsGetter?: () => AppSettings;
   private startupTimers: Map<string, NodeJS.Timeout> = new Map();
   private flushTimer: NodeJS.Timeout | null = null;
+  private idleCheckTimer: NodeJS.Timeout | null = null;
+  private stoppingProjectIds: Set<string> = new Set();
 
-  constructor(windowGetter: () => (BrowserWindow | null)[]) {
+  constructor(windowGetter: () => (BrowserWindow | null)[], settingsGetter?: () => AppSettings) {
     this.windowGetter = windowGetter;
+    this.settingsGetter = settingsGetter;
     this.startLogFlushTimer();
+    this.startIdleCheckTimer();
+  }
+
+  public recordActivity(projectId: string) {
+    const now = Date.now();
+    this.lastActivityTimestamps.set(projectId, now);
+  }
+
+  private startIdleCheckTimer() {
+    this.idleCheckTimer = setInterval(() => {
+      this.checkIdleProcesses();
+    }, 30000);
+  }
+
+  private async checkIdleProcesses() {
+    if (!this.settingsGetter) return;
+    const settings = this.settingsGetter();
+
+    for (const [projectId] of this.activeProcesses.entries()) {
+      const state = this.getState(projectId);
+      if (state.status !== 'running') continue;
+
+      const project = this.projectConfigMap.get(projectId);
+      const isIdleStopEnabled = project?.idleAutoStopEnabled ?? settings.enableIdleAutoStop ?? false;
+      if (!isIdleStopEnabled) continue;
+
+      const timeoutMinutes = project?.idleTimeoutMinutes || settings.idleTimeoutMinutes || 30;
+      const timeoutMs = timeoutMinutes * 60 * 1000;
+      const lastActivity = this.lastActivityTimestamps.get(projectId) || Date.now();
+      const idleDurationMs = Date.now() - lastActivity;
+
+      if (idleDurationMs >= timeoutMs) {
+        this.broadcastLog(projectId, {
+          id: Math.random().toString(36).substring(2),
+          projectId,
+          text: `[SYSTEM] Inactivity detected (${Math.round(idleDurationMs / 60000)}m idle). Auto-closing dev server.`,
+          type: 'system',
+          timestamp: new Date().toLocaleTimeString(),
+        });
+        await this.stopProject(projectId, 'idle');
+      }
+    }
+  }
+
+  public async handleSystemSuspend() {
+    const settings = this.settingsGetter?.();
+    const shouldStopOnSuspend = settings?.autoStopOnSystemSuspend ?? true;
+    if (!shouldStopOnSuspend) return;
+
+    const runningIds = Array.from(this.activeProcesses.keys());
+    for (const id of runningIds) {
+      this.broadcastLog(id, {
+        id: Math.random().toString(36).substring(2),
+        projectId: id,
+        text: `[SYSTEM] Computer suspend/sleep detected. Auto-stopping server to conserve power.`,
+        type: 'system',
+        timestamp: new Date().toLocaleTimeString(),
+      });
+      await this.stopProject(id, 'suspend');
+    }
   }
 
   private startLogFlushTimer() {
@@ -61,12 +125,16 @@ export class ProcessManager {
     const actualPort = detectedPort || state.actualPort || project.port;
     const gitBranch = getGitBranch(project.path);
     this.clearStartupTimer(project.id);
+    this.recordActivity(project.id);
     this.broadcastStateChange(project.id, {
       status: 'running',
       pid,
       startedAt: state.startedAt || new Date().toISOString(),
       actualPort,
       gitBranch,
+      autoStoppedReason: undefined,
+      isSleeping: false,
+      lastActivityAt: new Date().toISOString(),
     });
   }
 
@@ -321,9 +389,10 @@ export class ProcessManager {
           clearInterval(pollTimer);
         }
       }, 500);
-      this.startupTimers.set(project.id, pollTimer as any);
+      this.startupTimers.set(project.id, pollTimer);
 
       child.stdout?.on('data', (data: Buffer) => {
+        this.recordActivity(project.id);
         const textStr = data.toString();
         const lines = textStr.split('\n');
         lines.forEach((line) => {
@@ -349,6 +418,7 @@ export class ProcessManager {
       });
 
       child.stderr?.on('data', (data: Buffer) => {
+        this.recordActivity(project.id);
         const textStr = data.toString();
         const lines = textStr.split('\n');
         lines.forEach((line) => {
@@ -367,40 +437,50 @@ export class ProcessManager {
         });
       });
 
-
-
       child.on('exit', (code, signal) => {
         this.clearStartupTimer(project.id);
         logSystem(`Process exited with code ${code} (signal: ${signal || 'none'})`);
         this.activeProcesses.delete(project.id);
 
-        if (code !== 0 && code !== null && signal !== 'SIGKILL') {
-          this.broadcastStateChange(project.id, { status: 'failed', error: `Exited with code ${code}` });
+        const currentState = this.getState(project.id);
+        const wasIntentionalStop = this.stoppingProjectIds.has(project.id) || currentState.status === 'stopping' || currentState.status === 'idle';
+        this.stoppingProjectIds.delete(project.id);
+
+        if (wasIntentionalStop || code === 0 || code === null || signal === 'SIGKILL' || signal === 'SIGTERM') {
+          this.broadcastStateChange(project.id, { status: 'idle', error: undefined });
         } else {
-          this.broadcastStateChange(project.id, { status: 'idle' });
+          this.broadcastStateChange(project.id, { status: 'failed', error: `Exited with code ${code}` });
         }
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const errorMsg = err instanceof Error ? err.message : String(err);
       this.clearStartupTimer(project.id);
-      logSystem(`Exception launching process: ${err.message}`);
-      this.broadcastStateChange(project.id, { status: 'failed', error: err.message });
+      logSystem(`Exception launching process: ${errorMsg}`);
+      this.broadcastStateChange(project.id, { status: 'failed', error: errorMsg });
     }
   }
 
-  public stopProject(projectId: string): Promise<void> {
+  public stopProject(projectId: string, reason?: 'idle' | 'suspend' | 'memory-limit' | 'app-quit'): Promise<void> {
     return new Promise((resolve) => {
       this.clearStartupTimer(projectId);
+      this.stoppingProjectIds.add(projectId);
       const state = this.getState(projectId);
       const actualPort = state.actualPort;
       clearPortPidCache(actualPort);
 
       const child = this.activeProcesses.get(projectId);
       if (!child || !child.pid) {
-        this.broadcastStateChange(projectId, { status: 'idle' });
+        this.stoppingProjectIds.delete(projectId);
+        this.broadcastStateChange(projectId, {
+          status: 'idle',
+          error: undefined,
+          autoStoppedReason: reason,
+          isSleeping: reason === 'idle' || reason === 'suspend',
+        });
         return resolve();
       }
 
-      this.broadcastStateChange(projectId, { status: 'stopping' });
+      this.broadcastStateChange(projectId, { status: 'stopping', error: undefined });
 
       // Clean tree kill on Windows
       kill(child.pid, 'SIGKILL', (err) => {
@@ -408,10 +488,16 @@ export class ProcessManager {
           console.error(`Failed to tree-kill pid ${child.pid}:`, err);
         }
         this.activeProcesses.delete(projectId);
+        this.stoppingProjectIds.delete(projectId);
         clearPortPidCache(actualPort);
         setTimeout(() => {
           clearPortPidCache(actualPort);
-          this.broadcastStateChange(projectId, { status: 'idle' });
+          this.broadcastStateChange(projectId, {
+            status: 'idle',
+            error: undefined,
+            autoStoppedReason: reason,
+            isSleeping: reason === 'idle' || reason === 'suspend',
+          });
           resolve();
         }, 250);
       });
@@ -447,5 +533,10 @@ export class ProcessManager {
     this.logs.delete(projectId);
     this.pendingLogsQueue.delete(projectId);
     this.projectConfigMap.delete(projectId);
+  }
+
+  public destroy(): void {
+    if (this.flushTimer) clearInterval(this.flushTimer);
+    if (this.idleCheckTimer) clearInterval(this.idleCheckTimer);
   }
 }

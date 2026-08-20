@@ -1,32 +1,22 @@
 import React, { useEffect, useState } from 'react';
-import { Play, Square, ExternalLink, GitBranch, Folder, AlertCircle } from 'lucide-react';
+import { Play, Square, ExternalLink, GitBranch, Folder } from 'lucide-react';
 import { Project, ProjectRuntimeState } from '../../electron/types';
 import { PortConflictModal } from './PortConflictModal';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
-import { cn } from '@/lib/utils';
+import { useSnackbar } from './ui/snackbar';
 
 interface ProjectDetailViewProps {
   project: Project;
   state: ProjectRuntimeState;
   onStart: (project: Project, overridePort?: number) => void;
   onStop: (id: string) => void;
-  onRestart: (project: Project) => void;
-  onDelete: (id: string) => void;
-  onSaveProject: (project: Project) => void;
 }
 
-// Property cell — used in the property grid
-const PropCell = ({ label, children, mono = false }: { label: string; children: React.ReactNode; mono?: boolean }) => (
-  <div>
-    <span className="block text-[0.62rem] font-bold uppercase tracking-wider text-[--text-dim] mb-0.5">{label}</span>
-    <span className={cn('text-[0.8rem] text-white', mono && 'font-mono')}>{children}</span>
-  </div>
-);
-
 export const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
-  project, state, onStart, onStop, onRestart, onDelete, onSaveProject,
+  project, state, onStart, onStop,
 }) => {
+  const { toast } = useSnackbar();
   const isRunning = state.status === 'running';
   const isStarting = state.status === 'starting';
   const isStopping = state.status === 'stopping';
@@ -39,24 +29,6 @@ export const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
   // Port Conflict Modal State
   const [isConflictModalOpen, setIsConflictModalOpen] = useState(false);
   const [suggestedPort, setSuggestedPort] = useState<number>(project.port + 1);
-
-  useEffect(() => {
-    let active = true;
-    const fetchBranches = async () => {
-      try {
-        const list = await window.electronAPI.getGitBranches(project.path);
-        if (active) {
-          const current = state.gitBranch || 'main';
-          const unifiedList = list.includes(current) ? list : [current, ...list];
-          setBranches(unifiedList);
-        }
-      } catch (err) {
-        if (active) setBranches([state.gitBranch || 'main']);
-      }
-    };
-    fetchBranches();
-    return () => { active = false; };
-  }, [project.id, project.path, state.gitBranch]);
 
   const handleStartClick = async () => {
     try {
@@ -76,6 +48,51 @@ export const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
     }
   };
 
+  // Trigger floating snackbar toast when auto-stopped or failed state occurs
+  useEffect(() => {
+    if (!isRunning && state.autoStoppedReason) {
+      const reasonText = state.autoStoppedReason === 'idle' ? 'Inactivity timeout' : 'System sleep mode';
+      toast({
+        type: 'warning',
+        title: `Server auto-stopped (${reasonText})`,
+        duration: 10000,
+        action: {
+          label: 'Wake Up Server',
+          onClick: () => {
+            handleStartClick();
+          },
+        },
+      });
+    }
+
+    if (isFailed && state.error) {
+      toast({
+        type: 'error',
+        title: `Server Error`,
+        description: state.error,
+        duration: 10000,
+      });
+    }
+  }, [project.id, isRunning, isFailed, state.autoStoppedReason, state.error]);
+
+  useEffect(() => {
+    let active = true;
+    const fetchBranches = async () => {
+      try {
+        const list = await window.electronAPI.getGitBranches(project.path);
+        if (active) {
+          const current = state.gitBranch || 'main';
+          const unifiedList = list.includes(current) ? list : [current, ...list];
+          setBranches(unifiedList);
+        }
+      } catch (err) {
+        if (active) setBranches([state.gitBranch || 'main']);
+      }
+    };
+    fetchBranches();
+    return () => { active = false; };
+  }, [project.id, project.path, state.gitBranch]);
+
   useEffect(() => {
     if (!isRunning || !state.startedAt) { setUptimeStr(''); return; }
     const updateUptime = () => {
@@ -93,43 +110,6 @@ export const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
 
   const activePort = (isRunning && state.actualPort) ? state.actualPort : project.port;
   const projectUrl = `http://localhost:${activePort}`;
-
-  // Status badge
-  const statusBadge = () => {
-    if (isRunning) {
-      return (
-        <span className="flex items-center gap-1.5 font-mono text-[0.8rem] text-emerald-400 font-semibold">
-          <span className="dot-running" /> {uptimeStr || '0s'}
-        </span>
-      );
-    }
-    if (isStarting) {
-      return (
-        <span className="flex items-center gap-1.5 font-mono text-[0.8rem] text-amber-400 font-semibold animate-pulse">
-          <span className="dot-starting" /> Starting...
-        </span>
-      );
-    }
-    if (isStopping) {
-      return (
-        <span className="flex items-center gap-1.5 font-mono text-[0.8rem] text-amber-400 font-semibold animate-pulse">
-          <span className="dot-starting" /> Stopping...
-        </span>
-      );
-    }
-    if (isFailed) {
-      return (
-        <span className="flex items-center gap-1.5 font-mono text-[0.8rem] text-red-400 font-semibold">
-          <span className="w-1.5 h-1.5 rounded-full bg-red-500" /> Failed
-        </span>
-      );
-    }
-    return (
-      <span className="flex items-center gap-1.5 font-mono text-[0.8rem] text-zinc-400 font-semibold">
-        <span className="dot-idle" /> Idle
-      </span>
-    );
-  };
 
   return (
     <div className="p-4 bg-[#0f0f13] min-w-[320px] flex flex-col gap-3.5 select-none">
@@ -163,19 +143,11 @@ export const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
             <Badge variant="default" className="text-[0.68rem]">{project.framework}</Badge>
             
             {isRunning && (
-              <span className="text-[0.72rem] font-mono text-emerald-400 font-semibold bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+              <span className="text-[0.72rem] font-mono text-emerald-400 font-semibold bg-[#162520] border border-emerald-500/30 px-2 py-0.5 rounded">
                 {uptimeStr || '0s'}
               </span>
             )}
           </div>
-
-          {/* Failure banner */}
-          {isFailed && state.error && (
-            <div className="bg-red-500/10 border border-red-500/25 px-3 py-1.5 text-[0.75rem] text-red-300 font-mono rounded-[var(--radius)] flex items-center gap-2">
-              <AlertCircle size={14} className="text-red-400 shrink-0" />
-              <span className="truncate">{state.error}</span>
-            </div>
-          )}
 
           {/* Row 2: Directory Path & Inline Git Branch Selector */}
           <div className="flex items-center gap-2.5 text-[0.75rem] text-[#64748b] font-mono flex-wrap">
