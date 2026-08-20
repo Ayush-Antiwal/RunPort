@@ -48,9 +48,10 @@ export async function switchGitBranch(projectPath: string, branchName: string): 
   try {
     await execFilePromise('git', ['switch', branchName], { cwd: projectPath });
     return { success: true };
-  } catch (e: any) {
+  } catch (e: unknown) {
     console.error('Failed to switch branch:', e);
-    const errorMsg = e.stderr || e.message || 'Unknown git error';
+    const errObj = e as { stderr?: string; message?: string };
+    const errorMsg = errObj?.stderr || errObj?.message || 'Unknown git error';
     return { success: false, error: errorMsg };
   }
 }

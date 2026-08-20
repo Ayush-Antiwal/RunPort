@@ -3,7 +3,6 @@ import path from 'path';
 
 export function createSystemTray(
   mainWindowGetter: () => BrowserWindow | null,
-  widgetWindowGetter: () => BrowserWindow | null,
   toggleWidget: () => void,
   startAll: () => void,
   stopAll: () => void

@@ -1,12 +1,13 @@
-import { contextBridge, ipcRenderer } from 'electron';
-import { Project, AppSettings } from './types';
+import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron';
+import { Project, AppSettings, ProjectRuntimeState, LogLine } from './types';
+import { DetectionResult } from './detector';
 
 export const api = {
   // Projects
   getProjects: (): Promise<Project[]> => ipcRenderer.invoke('get-projects'),
   saveProject: (project: Project): Promise<Project[]> => ipcRenderer.invoke('save-project', project),
   deleteProject: (id: string): Promise<Project[]> => ipcRenderer.invoke('delete-project', id),
-  autoDetectProject: (folderPath: string) => ipcRenderer.invoke('auto-detect-project', folderPath),
+  autoDetectProject: (folderPath: string): Promise<DetectionResult | null> => ipcRenderer.invoke('auto-detect-project', folderPath),
   selectFolder: (): Promise<string | null> => ipcRenderer.invoke('select-folder'),
 
   // Server Management
@@ -26,8 +27,8 @@ export const api = {
   findNextPort: (port: number): Promise<number> => ipcRenderer.invoke('find-next-port', port),
 
   // Logs & State
-  getProjectStates: () => ipcRenderer.invoke('get-project-states'),
-  getProjectLogs: (projectId: string) => ipcRenderer.invoke('get-project-logs', projectId),
+  getProjectStates: (): Promise<Record<string, ProjectRuntimeState>> => ipcRenderer.invoke('get-project-states'),
+  getProjectLogs: (projectId: string): Promise<LogLine[]> => ipcRenderer.invoke('get-project-logs', projectId),
   clearProjectLogs: (projectId: string) => ipcRenderer.send('clear-project-logs', projectId),
   getGitBranches: (projectPath: string): Promise<string[]> => ipcRenderer.invoke('get-git-branches', projectPath),
   switchGitBranch: (projectId: string, projectPath: string, branchName: string): Promise<{ success: boolean; error?: string }> => ipcRenderer.invoke('switch-git-branch', projectId, projectPath, branchName),
@@ -43,30 +44,40 @@ export const api = {
   triggerGC: () => ipcRenderer.send('trigger-gc'),
 
   // Listeners
-  onProjectStateChanged: (callback: (data: { projectId: string; state: any }) => void) => {
-    const subscription = (_: any, data: any) => callback(data);
+  onProjectStateChanged: (callback: (data: { projectId: string; state: ProjectRuntimeState }) => void) => {
+    const subscription = (_: IpcRendererEvent, data: { projectId: string; state: ProjectRuntimeState }) => callback(data);
     ipcRenderer.on('project-state-changed', subscription);
-    return () => ipcRenderer.removeListener('project-state-changed', subscription);
+    return () => {
+      ipcRenderer.removeListener('project-state-changed', subscription);
+    };
   },
-  onProjectLogAdded: (callback: (log: any) => void) => {
-    const subscription = (_: any, log: any) => callback(log);
+  onProjectLogAdded: (callback: (log: LogLine) => void) => {
+    const subscription = (_: IpcRendererEvent, log: LogLine) => callback(log);
     ipcRenderer.on('project-log-added', subscription);
-    return () => ipcRenderer.removeListener('project-log-added', subscription);
+    return () => {
+      ipcRenderer.removeListener('project-log-added', subscription);
+    };
   },
-  onProjectLogsBatched: (callback: (data: { projectId: string; logs: any[] }) => void) => {
-    const subscription = (_: any, data: any) => callback(data);
+  onProjectLogsBatched: (callback: (data: { projectId: string; logs: LogLine[] }) => void) => {
+    const subscription = (_: IpcRendererEvent, data: { projectId: string; logs: LogLine[] }) => callback(data);
     ipcRenderer.on('project-logs-batched', subscription);
-    return () => ipcRenderer.removeListener('project-logs-batched', subscription);
+    return () => {
+      ipcRenderer.removeListener('project-logs-batched', subscription);
+    };
   },
   onProjectLogsCleared: (callback: (data: { projectId: string }) => void) => {
-    const subscription = (_: any, data: any) => callback(data);
+    const subscription = (_: IpcRendererEvent, data: { projectId: string }) => callback(data);
     ipcRenderer.on('project-logs-cleared', subscription);
-    return () => ipcRenderer.removeListener('project-logs-cleared', subscription);
+    return () => {
+      ipcRenderer.removeListener('project-logs-cleared', subscription);
+    };
   },
   onProjectsUpdated: (callback: (projects: Project[]) => void) => {
-    const subscription = (_: any, list: Project[]) => callback(list);
+    const subscription = (_: IpcRendererEvent, list: Project[]) => callback(list);
     ipcRenderer.on('projects-updated', subscription);
-    return () => ipcRenderer.removeListener('projects-updated', subscription);
+    return () => {
+      ipcRenderer.removeListener('projects-updated', subscription);
+    };
   },
 };
 

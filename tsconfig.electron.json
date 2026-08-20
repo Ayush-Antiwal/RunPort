@@ -6,9 +6,11 @@
     "outDir": "dist-electron",
     "skipLibCheck": true,
     "strict": true,
+    "noImplicitAny": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
     "esModuleInterop": true,
-    "resolveJsonModule": true,
-    "noImplicitAny": false
+    "resolveJsonModule": true
   },
   "include": ["electron/**/*"]
 }
