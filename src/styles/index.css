@@ -130,6 +130,15 @@ html, body, #root {
   background-color: var(--status-stopped);
 }
 
+.dot-failed {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--status-failed);
+  box-shadow: 0 0 6px var(--status-failed);
+}
+
 /* Glass Card Utility */
 .glass-panel {
   background: rgba(22, 22, 26, 0.85);

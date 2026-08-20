@@ -123,6 +123,9 @@ export class ProcessManager {
   public broadcastStateChange(projectId: string, partialState: Partial<ProjectRuntimeState>) {
     const currentState = this.getState(projectId);
     const newState = { ...currentState, ...partialState };
+    if ('error' in partialState && partialState.error === undefined) {
+      delete newState.error;
+    }
     this.states.set(projectId, newState);
     const windows = this.windowGetter();
     windows.forEach((win) => {
@@ -238,7 +241,7 @@ export class ProcessManager {
 
     const gitBranch = getGitBranch(project.path);
     this.clearStartupTimer(project.id);
-    this.broadcastStateChange(project.id, { status: 'starting', gitBranch });
+    this.broadcastStateChange(project.id, { status: 'starting', gitBranch, error: undefined });
 
     const logSystem = (msg: string) => {
       this.broadcastLog(project.id, {

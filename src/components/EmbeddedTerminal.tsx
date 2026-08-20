@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Terminal as TerminalIcon, Trash2, Copy, Check, Search, Play } from 'lucide-react';
+import { Terminal as TerminalIcon, Trash2, Copy, Check, Search, Play, Code } from 'lucide-react';
 import { Project, LogLine, ProjectRuntimeState } from '../../electron/types';
 import { Input } from './ui/input';
 import { Badge } from './ui/badge';
@@ -74,33 +74,39 @@ export const EmbeddedTerminal: React.FC<EmbeddedTerminalProps> = ({ project, sta
     ? logs.filter((l) => l.text.toLowerCase().includes(filter.toLowerCase()))
     : logs;
 
+  const isRunning = state?.status === 'running';
+  const activePort = (isRunning && state?.actualPort) ? state.actualPort : project.port;
+
   return (
-    <div className="flex-1 flex flex-col bg-[#060608] border-t border-[#22222a] overflow-hidden">
+    <div className="flex-1 flex flex-col bg-[#08080b] border border-[#22222c] rounded-2xl overflow-hidden shadow-lg min-h-0 min-w-[320px]">
       {/* Terminal header bar */}
       <div
-        className="h-8 px-3.5 bg-[#0f0f13] border-b border-[#22222a] flex items-center justify-between shrink-0 select-none"
+        className="h-auto min-h-[2.25rem] px-3 py-1.5 bg-[#0f0f13] border-b border-[#1f1f28] flex items-center justify-between gap-2 flex-wrap shrink-0 select-none"
       >
-        {/* Left: Title */}
-        <div className="flex items-center gap-2">
-          <TerminalIcon size={13} className="text-zinc-300" />
-          <span className="text-[0.78rem] font-semibold text-white tracking-tight">Terminal</span>
-          <span className="text-[0.68rem] text-[#64748b] font-mono px-1.5 py-0.5 rounded bg-[#17171d] border border-[#262632]">
+        {/* Left: Title + Port (as in sketch: Terminal 4200) */}
+        <div className="flex items-center gap-2 flex-wrap min-w-0">
+          <TerminalIcon size={14} className="text-zinc-300 shrink-0" />
+          <span className="text-[0.85rem] font-bold text-white tracking-tight shrink-0">Terminal</span>
+          <span className="text-[0.75rem] text-blue-400 font-mono font-bold px-1.5 py-0.5 rounded bg-[#161622] border border-[#28283a] shrink-0">
+            {activePort}
+          </span>
+          <span className="text-[0.65rem] text-[#64748b] font-mono px-1.5 py-0.5 rounded bg-[#16161d] border border-[#242430] truncate max-w-[120px] sm:max-w-[200px] hidden sm:inline-block">
             {project.command}
           </span>
-          <Badge variant="default" className="normal-case font-mono text-[0.65rem]">
+          <Badge variant="default" className="normal-case font-mono text-[0.62rem] hidden md:inline-flex">
             {logs.length} lines
           </Badge>
         </div>
 
         {/* Right: Grouped Controls (Search + Icon Buttons next to it) */}
-        <div className="flex items-center gap-1.5 no-drag">
+        <div className="flex items-center gap-1 sm:gap-1.5 no-drag shrink-0">
           <div className="relative">
             <Search size={11} className="absolute left-2 top-1/2 -translate-y-1/2 text-[#64748b] pointer-events-none" />
             <Input
               value={filter}
               onChange={(e) => setFilter(e.target.value)}
-              placeholder="Filter logs..."
-              className="pl-6 h-6 text-[0.7rem] w-32 bg-[#16161d] border-[#262632] focus:border-zinc-400"
+              placeholder="Filter..."
+              className="pl-6 h-6 text-[0.7rem] w-20 sm:w-28 md:w-32 bg-[#16161d] border-[#262632] focus:border-zinc-400"
             />
           </div>
 
@@ -127,6 +133,14 @@ export const EmbeddedTerminal: React.FC<EmbeddedTerminalProps> = ({ project, sta
           >
             <TerminalIcon size={11} />
           </button>
+
+          <button
+            onClick={() => window.electronAPI.openInIDE(project.path)}
+            title="Open in VS Code"
+            className="h-6 w-6 rounded flex items-center justify-center bg-[#1c1c24] hover:bg-blue-500/20 text-blue-400 hover:text-blue-300 transition-all cursor-pointer border border-[#323242] hover:border-blue-500/30"
+          >
+            <Code size={11} />
+          </button>
         </div>
       </div>
 
@@ -136,7 +150,7 @@ export const EmbeddedTerminal: React.FC<EmbeddedTerminalProps> = ({ project, sta
         style={{ userSelect: 'text', WebkitUserSelect: 'text' }}
       >
         {filteredLogs.length === 0 ? (
-          <div className="flex-1 flex flex-col items-center justify-center p-8 select-none border border-dashed border-[#22222a] rounded-lg m-4 bg-[#0a0a0c]">
+          <div className="flex-1 flex flex-col items-center justify-center p-8 select-none">
             <TerminalIcon size={24} className="text-[#3f3f46] mb-3 animate-pulse" />
             <p className="text-xs text-[#a1a1aa] mb-1 font-semibold">Terminal is Offline</p>
             <p className="text-[0.7rem] text-[#71717a] mb-4 text-center max-w-xs leading-relaxed">

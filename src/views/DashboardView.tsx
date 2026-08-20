@@ -45,6 +45,17 @@ export const DashboardView: React.FC = () => {
   }, []);
 
   useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 768) {
+        setIsSidebarCompact(true);
+      }
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useEffect(() => {
     if (projects.length > 0) {
       if (!selectedProjectId || !projects.some((p) => p.id === selectedProjectId)) {
         setSelectedProjectId(projects[0].id);
@@ -72,9 +83,9 @@ export const DashboardView: React.FC = () => {
   };
 
   return (
-    <div className="w-screen h-screen flex bg-[#0d0d0e] text-white overflow-hidden select-none">
+    <div className="w-screen h-screen flex bg-[#08080a] text-white p-2.5 gap-2.5 overflow-hidden select-none">
       {/* Sidebar container */}
-      <div className={`${isSidebarCompact ? 'w-14' : 'w-60'} h-full overflow-hidden shrink-0 transition-all duration-150`}>
+      <div className={`${isSidebarCompact ? 'w-14' : 'w-60'} h-full shrink-0 transition-all duration-150 flex flex-col`}>
         <Sidebar
           projects={projects}
           states={states}
@@ -91,10 +102,10 @@ export const DashboardView: React.FC = () => {
       </div>
 
       {/* Main content area */}
-      <main className="flex-1 flex flex-col bg-[#0d0d0e] overflow-hidden min-w-0">
+      <main className="flex-1 flex flex-col min-w-0 gap-2.5 overflow-hidden">
         {selectedProject ? (
           <>
-            <div className="shrink-0 overflow-y-auto">
+            <div className="shrink-0 bg-[#0f0f13] border border-[#22222c] rounded-2xl overflow-hidden shadow-lg">
               <ProjectDetailView
                 project={selectedProject}
                 state={selectedState}
@@ -106,7 +117,7 @@ export const DashboardView: React.FC = () => {
               />
             </div>
 
-            <div className="flex-1 flex flex-col overflow-hidden">
+            <div className="flex-1 flex flex-col overflow-hidden min-h-0">
               <EmbeddedTerminal
                 project={selectedProject}
                 state={selectedState}
@@ -115,8 +126,8 @@ export const DashboardView: React.FC = () => {
             </div>
           </>
         ) : (
-          <div className="flex-1 flex flex-col items-center justify-center p-10 text-center">
-            <div className="w-16 h-16 rounded-full bg-white/5 border border-[#26262b] flex items-center justify-center mb-4">
+          <div className="flex-1 flex flex-col items-center justify-center p-10 text-center bg-[#0f0f13] border border-[#22222c] rounded-2xl shadow-lg">
+            <div className="w-16 h-16 rounded-2xl bg-white/5 border border-[#262632] flex items-center justify-center mb-4 shadow-inner">
               <Layers size={32} className="text-[--text-dim]" />
             </div>
             <h3 className="text-lg font-semibold text-white mb-2">
