@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, dialog, shell, nativeImage, session, NativeImage } from 'electron';
+import { app, BrowserWindow, ipcMain, dialog, shell, nativeImage, session, NativeImage, powerMonitor } from 'electron';
 import path from 'path';
 import fs from 'fs';
 import { spawn } from 'child_process';
@@ -6,7 +6,7 @@ import { Store } from './store';
 import { ProcessManager } from './processManager';
 import { autoDetectProject, killProcessOnPort, getProcessUsingPort, isPortAvailable, findNextUnusedPort, getGitBranch, getGitBranches, switchGitBranch } from './detector';
 import { createSystemTray } from './tray';
-import { Project } from './types';
+import { Project, AppSettings } from './types';
 
 // Helper to strictly restrict shell.openPath to existing local directories (HIGH-001)
 function isSafeDirectory(targetPath: string): boolean {
@@ -138,7 +138,7 @@ function createWidgetWindow() {
     frame: false,
     transparent: true,
     alwaysOnTop: settings.widgetAlwaysOnTop,
-    skipTaskbar: false, // Ensure it is shown in the taskbar
+    skipTaskbar: true, // Do not show icon on taskbar for widget window
     icon: widgetIcon,   // Assign native icon to the window
     show: true,
     webPreferences: {
@@ -180,7 +180,14 @@ function toggleWidgetWindow() {
 
 app.whenReady().then(() => {
   store = new Store();
-  processManager = new ProcessManager(() => [mainWindow, widgetWindow]);
+  processManager = new ProcessManager(
+    () => [mainWindow, widgetWindow],
+    () => store.getSettings()
+  );
+
+  powerMonitor.on('suspend', () => {
+    processManager.handleSystemSuspend();
+  });
 
   // Set session-level CSP headers for production & dev security (HIGH-003)
   session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
@@ -200,7 +207,6 @@ app.whenReady().then(() => {
 
   createSystemTray(
     () => mainWindow,
-    () => widgetWindow,
     toggleWidgetWindow,
     () => {
       const projects = store.getProjects();
@@ -394,7 +400,7 @@ app.whenReady().then(() => {
   ipcMain.on('clear-project-logs', (_, projectId: string) => processManager.clearLogs(projectId));
 
   ipcMain.handle('get-settings', () => store.getSettings());
-  ipcMain.handle('update-settings', (_, newSettings: Partial<any>) => {
+  ipcMain.handle('update-settings', (_, newSettings: Partial<AppSettings>) => {
     const updated = store.updateSettings(newSettings);
     if (widgetWindow && !widgetWindow.isDestroyed()) {
       widgetWindow.setAlwaysOnTop(updated.widgetAlwaysOnTop);
